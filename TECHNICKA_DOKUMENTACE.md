@@ -4,52 +4,67 @@
 
 ## 1. Přehled projektu
 
-Běžci sobě je moderní webová SPA aplikace pro sdílení dopravy mezi běžci, kteří jedou na různé závody. Aplikace je postavená na React frameworku s TypeScriptem a používá moderní nástroje pro vývoj webových aplikací.
+Běžci sobě je moderní full-stack webová aplikace pro sdílení dopravy mezi běžci, kteří jedou na různé závody. Frontend je SPA postavená v Reactu s TypeScriptem, backend je REST API ve Spring Bootu nad PostgreSQL. Původní verze projektu používala LocalStorage jako mock backend; aktuální verze má reálný backend s databází a JWT autentizací.
 
 ### Technologie, které jsem použila
 
-- **Frontend Framework**: React 18 s TypeScriptem
+**Frontend:**
+
+- **Framework**: React 18 s TypeScriptem
 - **Build nástroj**: Vite 6 (rychlejší než Webpack)
 - **Navigace**: React Router DOM v6
-- **Styling**: Tailwind CSS + Bootstrap 5
+- **Styling**: Tailwind CSS 3 + Bootstrap 5
 - **Správa stavu**: React Context API
-- **Ukládání dat**: LocalStorage (simuluje backend)
-- **Testování**:
-  - Unit testy: Vitest + React Testing Library
-  - E2E testy: Playwright
+- **Komunikace s backendem**: nativní `fetch`, JWT v `Authorization: Bearer`
+- **Testování**: Vitest + React Testing Library (unit), Playwright (E2E)
 - **Code quality**: ESLint s TypeScript pravidly
+
+**Backend:**
+
+- **Framework**: Spring Boot 3.2 (Java 17)
+- **Bezpečnost**: Spring Security + stateless JWT (jjwt 0.12.5)
+- **ORM**: Spring Data JPA + Hibernate
+- **Migrace DB**: Flyway (V1–V4)
+- **Databáze**: PostgreSQL 14+ (produkce/dev), H2 in-memory (testy)
+- **Validace**: `spring-boot-starter-validation` (Bean Validation)
+- **Testy**: JUnit 5 + Mockito + Spring MockMvc
 
 ## 2. Architektura aplikace
 
 ### 2.1 Struktura projektu
 
 ```
-src/
-├── components/           # Komponenty co se používají víckrát
-│   └── layout/          # Layout komponenty (Header, Footer, Layout)
-├── pages/               # Jednotlivé stránky (views)
-│   ├── HomePage.tsx
-│   ├── AboutPage.tsx
-│   ├── RacesPage.tsx
-│   ├── OrganizersPage.tsx
-│   ├── LoginPage.tsx
-│   ├── RegistrationPage.tsx
-│   ├── ProfilePage.tsx
-│   ├── ForgottenPasswordPage.tsx
-│   └── TermsPage.tsx
-├── contexts/            # React Context pro přihlášení
-│   └── AuthContext.tsx
-├── services/            # API služby a business logika
-│   └── apiService.ts
-├── types/              # TypeScript definice typů
-│   └── index.ts
-├── routes/             # Nastavení cest
-│   └── AppRouter.tsx
-├── test/               # Testovací utils
-│   └── setup.ts
-├── App.tsx             # Hlavní komponenta
-├── main.tsx            # Vstupní bod aplikace
-└── index.css           # Globální styly a animace
+.
+├── src/                          # Frontend (React + TS)
+│   ├── components/layout/        # Header, Footer, Layout
+│   ├── pages/                    # 9 view komponent
+│   ├── contexts/AuthContext.tsx  # Globální stav přihlášení
+│   ├── services/apiService.ts    # REST klient pro backend
+│   ├── types/index.ts            # TypeScript modely (User, Race, Ride...)
+│   ├── routes/AppRouter.tsx      # Routing
+│   ├── utils/                    # Validační funkce
+│   ├── test/setup.ts             # Vitest setup
+│   ├── App.tsx                   # Kořenová komponenta
+│   ├── main.tsx                  # Vstupní bod (ReactDOM.createRoot)
+│   └── index.css                 # Globální styly + animace
+├── tests/                        # Playwright E2E specy
+└── backend/                      # Backend (Spring Boot)
+    ├── pom.xml
+    └── src/main/
+        ├── java/cz/bezcisobe/backend/
+        │   ├── BackendApplication.java
+        │   ├── config/           # Cors, Security
+        │   ├── controller/       # Auth, Race, Ride, ReferenceData
+        │   ├── dto/              # request, response, mapper
+        │   ├── entity/           # 9 JPA entit
+        │   ├── exception/        # Vlastní výjimky + GlobalExceptionHandler
+        │   ├── repository/       # Spring Data JPA repozitáře
+        │   ├── security/         # JWT filter, provider, UserDetails
+        │   └── service/          # AuthService, RaceService, RideService
+        └── resources/
+            ├── application.yml          # Postgres, Flyway, JWT
+            ├── application-dev.yml      # Dev profil
+            └── db/migration/V1..V4__*.sql
 ```
 
 ### 2.2 Popis jednotlivých stránek
@@ -90,58 +105,58 @@ interface AuthContextType {
 - Kontroluje při načtení stránky, jestli je někdo přihlášený
 - Automaticky přesměruje na login, když se někdo snaží dostat na chráněnou stránku
 
-### 3.2 LocalStorage jako "Backend"
+### 3.2 Backend a perzistence
 
-Protože to je jen školní projekt, nepoužívám zatím reálný backend. Všechna data ukládám do LocalStorage prohlížeče:
+Aplikace má reálný Spring Boot backend, který data ukládá do PostgreSQL databáze. Frontend používá LocalStorage pouze pro JWT token (`bezci_sobe_token`), aby uživatel zůstal přihlášený i po obnovení stránky. Veškerá doménová data (uživatelé, závody, jízdy, číselníky) jsou v databázi a frontend si je tahá přes REST.
 
-- `bezci_sobe_users` - uživatelé
-- `bezci_sobe_races` - závody
-- `bezci_sobe_rides` - jízdy
-- `bezci_sobe_calendars` - kalendáře závodů
-- `bezci_sobe_track_lengths` - délky tratí (5K, 10K, půlmaraton, maraton...)
-- `bezci_sobe_track_types` - typy tratí (silnice, trail, dráha)
-- `bezci_sobe_certifications` - certifikace (IAAF, AIMS)
-- `bezci_sobe_current_user` - právě přihlášený uživatel
-- `bezci_sobe_auth_token` - přihlašovací token
+Schéma databáze a počáteční data spravuje Flyway čtyřmi migracemi:
+
+- `V1__create_schema.sql` – tabulky a vztahy
+- `V2__seed_reference_data.sql` – číselníky (délky tratí, typy tratí, certifikace, kalendáře)
+- `V3__seed_users_and_races.sql` – testovací uživatelé (BCrypt cost-10) a závody pro rok 2026
+- `V4__seed_rides.sql` – ukázkové jízdy
 
 ## 4. Práce s daty
 
 ### 4.1 API Service
 
-Soubor `apiService.ts` obsahuje všechny funkce pro práce s daty:
+Soubor `apiService.ts` je tenký REST klient nad `fetch`, který volá backend na `http://localhost:8080/api`. Token z přihlášení automaticky přikládá do hlavičky `Authorization: Bearer <token>`.
 
 **Přihlášení a registrace:**
 
-- `login(username, password)` - přihlásí uživatele
-- `register(username, email, password)` - zaregistruje nového uživatele
-- `logout()` - odhlásí uživatele
-- `getCurrentUser()` - vrátí aktuálně přihlášeného uživatele
+- `login(username, password)` – POST `/auth/login`, uloží JWT
+- `register(...)` – POST `/auth/register`
+- `getCurrentUser()` – GET `/auth/me`
+- `logout()` – smaže lokální token
 
 **Závody:**
 
-- `getRaces()` - vrátí všechny závody
-- `getRaceById(id)` - detail jednoho závodu
+- `getRaces()` – GET `/races`
+- `getRaceById(id)` – GET `/races/{id}`
 
 **Jízdy (rides):**
 
-- `getRides()` - všechny jízdy
-- `getRidesByRace(raceId)` - jízdy pro konkrétní závod
-- `createRide(ride)` - vytvoří novou jízdu
-- `updateRide(id, updates)` - upraví jízdu
-- `deleteRide(id)` - smaže jízdu
-- `acceptRide(rideId, passengerId)` - přijme nabídku jízdy
-- `cancelRideAcceptance(rideId, passengerId)` - zruší přijetí jízdy
+- `getRides()` – GET `/rides`
+- `getRidesByRace(raceId)` – GET `/rides?raceId=...`
+- `createRide(payload)` – POST `/rides`
+- `deleteRide(id)` – DELETE `/rides/{id}`
+- `acceptRide(rideId)` – POST `/rides/{id}/accept`
+- `cancelRideAcceptance(rideId)` – POST `/rides/{id}/cancel`
+
+Chyby se na frontendu vyhazují jako `Error` s textem z těla odpovědi (`ErrorResponse.message`), který backend posílá konzistentně přes `GlobalExceptionHandler`.
 
 ### 4.2 Validace dat
 
-**Validace na frontendu** jsem implementovala na několika úrovních:
+**Validace na frontendu:**
 
 1. **HTML5 validace**: atributy jako `required`, `minLength`, `type="email"`
-2. **Vlastní validace**: kontrola shody hesel, formátu emailu
+2. **Vlastní validace** (`src/utils/validation.ts`): kontrola shody hesel, formátu emailu
 3. **Validační pravidla**:
    - Uživatelské jméno: minimálně 3 znaky, jen písmena/čísla/podtržítka/pomlčky
    - Email: musí být validní email
    - Heslo: minimálně 6 znaků, musí obsahovat velké i malé písmeno nebo číslo
+
+**Validace na backendu:** každý request DTO má anotace z Bean Validation (`@NotBlank`, `@Email`, `@Size`, `@Min`, …). Pokud klient pošle neplatná data, Spring vrátí `400 Bad Request` přes `GlobalExceptionHandler` s konzistentní strukturou `ErrorResponse`.
 
 ## 5. TypeScript typování
 
@@ -385,199 +400,134 @@ V `.npmrc` souboru mám nastaveno:
 
 ### 10.2 Bezpečnost aplikace
 
-- **Client-side validace** všech vstupů
+- **Client-side validace** všech vstupů + serverová Bean Validation
 - **XSS ochrana**: React automaticky escapuje vstupy
 - **TypeScript**: Pomáhá předcházet chybám už při psaní kódu
-- **Hesla**: V reálné aplikaci by byla hashovaná (tady jen ukládám do LocalStorage)
+- **Hashování hesel**: BCrypt cost-10 přes Spring `BCryptPasswordEncoder`
+- **Autentizace**: stateless JWT (HS256, 24h platnost), filter ve Spring Security
+- **CORS**: explicitně povolený jen pro Vite dev server (`http://localhost:5173`)
+- **Globální exception handler**: nikdy neunikne stack trace klientovi, jen `ErrorResponse`
 
 ## 11. Známé problémy a omezení
 
-### 11.1 LocalStorage místo databáze
+### 11.1 Provozní předpoklady
 
-- Data se ukládají jen v prohlížeči
-- Po vymazání cookies/storage se data ztratí
-- Není synchronizace mezi zařízeními
-- Není to škálovatelné pro reálný provoz
+- Backend potřebuje běžící PostgreSQL na `localhost:5432` s databází `bezcisobe` (parametry v `application.yml`).
+- Frontend očekává backend na `http://localhost:8080`. Adresa je hard-coded v `apiService.ts` – pro produkci by byla v env proměnné.
+- JWT secret v `application.yml` je commitnutý na ukázku – v produkci by patřil do tajného úložiště (Vault, Azure Key Vault, env).
 
 ### 11.2 Chybějící funkce
 
-Pro reálný provoz by byla potřeba:
+Pro reálný provoz by byla ještě potřeba:
 
 - Real-time chat mezi uživateli
-- Notifikace (email/push)
+- Notifikace (email / push)
 - Mapová integrace
-- Hodnocení řidičů/spolujezdců
+- Hodnocení řidičů / spolujezdců
 - Platební brána
-- Reálný backend s databází
-- Hashování hesel
+- Refresh tokeny + odvolávání JWT
+- Mobilní aplikace
 
 ## 12. Spuštění projektu
 
-### 12.1 Instalace
+### 12.1 Předpoklady
+
+| Nástroj    | Verze |
+| ---------- | ----- |
+| Node.js    | 20+   |
+| npm        | 10+   |
+| Java JDK   | 17    |
+| Maven      | 3.9+  |
+| PostgreSQL | 14+   |
+
+### 12.2 Backend – první spuštění
 
 ```bash
-# Naklonovat repozitář
-git clone <repository-url>
+# 1) V Postgresu vytvořit databázi a uživatele (heslo dle application.yml)
+psql -U postgres -c "CREATE DATABASE bezcisobe;"
 
-# Přejít do složky
-cd bezci-sobe-app
+# 2) Spustit backend – Flyway sám vytvoří schéma a naseeduje data
+cd backend
+mvn spring-boot:run
+# API běží na http://localhost:8080
 
-# Nainstalovat závislosti
-npm install
+# 3) Backend testy (JUnit 5 + H2 in-memory)
+mvn test
 ```
 
-### 12.2 Development
-
-```bash
-# Spustit dev server (http://localhost:5173)
-npm run dev
-
-# V jiném terminálu - unit testy
-npm test
-
-# E2E testy
-npm run e2e
-```
-
-### 12.3 Production build
-
-```bash
-# Vytvořit produkční build
-npm run build
-
-# Náhled produkčního buildu
-npm run preview
-
-# Zkontrolovat kód
-npm run lint
-```
-
-### 12.4 Testing
-
-```bash
-# Unit testy
-npm test                  # Běží v watch módu
-npm run test:ui          # S grafickým rozhraním
-npm run test:coverage    # S code coverage
-
-# E2E testy
-npm run e2e              # Spustí všechny testy
-npm run e2e:ui           # UI mód
-npm run e2e:headed       # Vidím prohlížeč
-npm run e2e:debug        # Debug mód
-```
-
-## 13. Závěr
-
-Projekt splňuje všechny požadavky zadání:
-
-- ✅ Minimálně 5 views (mám 9)
-- ✅ React s TypeScriptem
-- ✅ Routing (React Router)
-- ✅ State management (Context API)
-- ✅ Formuláře s validací
-- ✅ LocalStorage pro perzistenci
-- ✅ Responzivní design
-- ✅ Unit testy (31 testů)
-- ✅ E2E testy (21 testů)
-- ✅ Moderní UI/UX
-- ✅ TypeScript typování
-
-### Co jsem se naučila
-
-Během vývoje jsem se naučila:
-
-- Práci s React hooks (useState, useEffect, useContext)
-- TypeScript - typování, interfaces, enums
-- React Router - navigace, protected routes
-- Tailwind CSS - utility-first CSS
-- Testování - unit i E2E testy
-- Git - verzování, commity
-- Playwright - moderní E2E testing framework
-
-### Možná rozšíření do budoucna
-
-Kdyby měl projekt pokračovat, přidala bych:
-
-- Reálný backend (Node.js + Express + MongoDB)
-- Autentizaci přes JWT tokeny
-- Real-time chat (WebSockets)
-- Mapovou integraci (Google Maps API)
-- Push notifikace
-- Hodnocení uživatelů
-- Fotky profilů a aut
-- Sdílení nákladů na cestu
-- Mobilní aplikace (React Native)
-
----
-
-**Autor**: Iva Fischerová  
-**Datum**: Leden 2026  
-**Předmět**: Tvorba webových aplikací  
-**Verze**: 1.0
-
-## 7. Optimalizace a výkon
-
-### 7.1 Build optimalizace
-
-- **Code splitting**: Vendor bundle oddělen od aplikačního kódu
-- **Tree shaking**: Automatické odstranění nepoužitého kódu
-- **Minifikace**: Terser pro minifikaci produkčního buildu
-- **Source maps vypnuty**: Pro zabránění odhalení zdrojového kódu v produkci
-
-### 7.2 Performance best practices
-
-- React.StrictMode pro detekci problémů
-- Lazy loading routes (možnost rozšíření)
-- Memoizace komponent kde je to vhodné
-- Optimalizované re-rendery pomocí správného state managementu
-
-## 8. Bezpečnost
-
-### 8.1 NPM bezpečnost
-
-- `.npmrc` s `ignore-scripts=true` - zabraňuje spuštění post-install skriptů
-- `save-exact=true` - používá přesné verze balíčků
-- Pravidelné `npm audit` pro kontrolu zranitelností
-
-### 8.2 Aplikační bezpečnost
-
-- Client-side validace všech vstupů
-- XSS ochrana díky React (automatické escapování)
-- CSRF ochrana není potřeba (žádný real backend)
-- Bezpečné ukládání hesel (v reálné aplikaci by byly hashované)
-
-## 9. Spuštění projektu
+### 12.3 Frontend – development
 
 ```bash
 # Instalace závislostí
 npm install
 
-# Development server
+# Dev server na http://localhost:5173 (předpokládá běžící backend na :8080)
 npm run dev
 
-# Build pro produkci
-npm run build
-
-# Preview produkčního buildu
-npm run preview
-
-# Linting
+# Lint a unit testy
 npm run lint
+npm test                  # watch mód
+npm test -- --run         # jednorázové spuštění
+npm run test:coverage     # s coverage reportem
 
-# Testy
-npm test
-npm run e2e
+# E2E testy (Playwright)
+npm run e2e               # všechny testy headless
+npm run e2e:ui            # UI mód pro debugging
+npm run e2e:headed        # vidím prohlížeč
 ```
 
-## 10. Další rozvoj
+### 12.4 Produkční build frontendu
 
-Možná rozšíření aplikace:
+```bash
+npm run build       # tsc + vite build → dist/
+npm run preview     # lokální preview produkčního buildu
+```
 
-- Real-time chat mezi uživateli
-- Hodnoce2evatelů/jízd
-- Push notifikace
-- Integrace s mapovými službami
-- Real backend API
-- Pokročilé filtrování a vyhledávání závodů
-- Platební brána pro sdílení nákladů
+## 13. Závěr
+
+Projekt splňuje a překračuje požadavky zadání:
+
+- ✅ Minimálně 5 views (mám 9)
+- ✅ React s TypeScriptem
+- ✅ Routing (React Router)
+- ✅ State management (Context API)
+- ✅ Formuláře s frontend i backend validací
+- ✅ Reálný backend s perzistencí v PostgreSQL
+- ✅ JWT autentizace + BCrypt hashování hesel
+- ✅ Responzivní design
+- ✅ Unit testy frontendu (Vitest, 26 testů)
+- ✅ Backend testy (JUnit 5 + Mockito + MockMvc)
+- ✅ E2E testy (Playwright, 21 scénářů)
+- ✅ Moderní UI/UX
+- ✅ TypeScript typování + Bean Validation na backendu
+
+### Co jsem se naučila
+
+- React hooks (useState, useEffect, useContext) a Context API
+- TypeScript – typování, interfaces, enums
+- React Router – navigace, chráněné cesty, redirecty
+- Tailwind CSS – utility-first styling
+- REST klient nad fetch + JWT v hlavičkách
+- Spring Boot 3.2 – kontrolery, services, JPA repozitáře, DTO mapping
+- Spring Security – stateless JWT pipeline, BCrypt
+- Flyway migrace a seedování dat
+- Testování na obou stranách – Vitest, Playwright, JUnit, Mockito
+- Git – verzování, logické commity, commit-message konvence
+
+### Možná rozšíření do budoucna
+
+- Real-time chat (WebSockets)
+- Mapová integrace (Mapy.cz / Google Maps API)
+- Push / e-mail notifikace
+- Hodnocení uživatelů a jízd
+- Fotky profilů a aut
+- Sdílení nákladů + platební brána
+- Refresh tokeny a odvolatelné JWT
+- Mobilní aplikace (React Native)
+
+---
+
+**Autor**: Iva Fischerová  
+**Datum**: Leden 2026 (frontend), Květen 2026 (full-stack refactor)  
+**Předmět**: Tvorba webových aplikací  
+**Verze**: 2.0

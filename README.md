@@ -1,140 +1,146 @@
-# Běžci sobě - React Application
+# Běžci sobě
 
-A modern carpooling platform for runners built with React, TypeScript, Vite (unit and component testing) and Playwright (e2e testing).
+A modern carpooling platform for runners going to Czech running races. The
+project is a full-stack application with a React + TypeScript frontend and a
+Spring Boot + PostgreSQL backend.
+
+## Architecture
+
+```
+┌──────────────────────┐      HTTPS / fetch      ┌────────────────────────┐
+│  React + TS frontend │ ──────────────────────▶ │  Spring Boot 3.2 API   │
+│  Vite, Tailwind, R.R │ ◀────── JWT auth ────── │  Java 17, Spring       │
+└──────────────────────┘                         │  Security, Flyway, JPA │
+                                                 └─────────────┬──────────┘
+                                                               │ JDBC
+                                                               ▼
+                                                       ┌───────────────┐
+                                                       │  PostgreSQL   │
+                                                       └───────────────┘
+```
 
 ## Features
 
-- Create and manage carpooling offers for running races
-- Find rides to popular Czech running events
-- User authentication and profiles
-- Fully responsive design
-- Testing (31 unit tests + 21 E2E tests)
+- Browse Czech running races and event details
+- Create, accept, and cancel ride OFFERs (driver) and REQUESTs (runner)
+- User registration, login, and JWT-protected actions
+- Admin role for elevated access
+- Fully responsive UI (Tailwind + Bootstrap utilities)
+- 26 frontend unit tests (Vitest) + 21 E2E scenarios (Playwright)
+- Backend tests with JUnit 5 and Mockito (controllers + service layer)
 
-## Security Features
+## Repository layout
 
-This project is configured with security best practices:
+```
+.
+├── src/                 React + TypeScript frontend (Vite)
+├── tests/               Playwright E2E specs
+├── backend/             Spring Boot 3.2 service
+│   ├── pom.xml
+│   └── src/main/...     entities, repos, services, controllers, security
+└── *.config.ts / *.json build, lint, test configuration
+```
 
-- **`.npmrc`**: Configured to ignore post-install scripts (`ignore-scripts=true`)
-- **Exact versions**: Dependencies use exact versions to prevent unexpected updates
-- **Audit enabled**: Automatic security audits on package installation
-- **Source maps disabled**: Production builds don't expose source code
+## Prerequisites
 
-## Installation
+| Tool       | Version       |
+| ---------- | ------------- |
+| Node.js    | 20+           |
+| npm        | 10+           |
+| Java JDK   | 17            |
+| Maven      | 3.9+          |
+| PostgreSQL | 14+           |
+
+## Frontend
 
 ```bash
-# Install dependencies with security settings
+# Install (with security-hardened .npmrc — ignore-scripts, save-exact, audit)
 npm install
 
-# Or use clean install with lockfile
-npm ci
-```
-
-## Development
-
-```bash
-# Start development server (http://localhost:5173)
+# Start dev server on http://localhost:5173
 npm run dev
 
-# Run unit tests (watch mode)
-npm test
-
-# Run unit tests with UI
-npm run test:ui
-
-# Run unit tests with coverage
-npm run test:coverage
-
-# Run E2E tests
-npm run e2e
-
-# Build for production
+# Lint, unit tests, build
+npm run lint
+npm test            # watch mode
+npm test -- --run   # single pass (CI mode)
 npm run build
 
-# Preview production build
-npm run preview
-
-# Lint code
-npm run lint
+# E2E (requires backend running for race / login flows)
+npm run e2e
+npm run e2e:ui      # UI mode for debugging
 ```
 
-## Testing
+## Backend
 
-### Unit Tests (Vitest)
+### One-time setup
 
-- **31 unit tests** covering components, API services, and utilities
-- Test files: `src/**/*.test.ts(x)`
-- Technologies: Vitest, React Testing Library
+Create the Postgres database and a user matching `application.yml` defaults
+(`bezcisobe` / `postgres` / `postgres` — change in `application.yml` for any
+non-development environment):
+
+```sql
+CREATE DATABASE bezcisobe;
+CREATE USER postgres WITH PASSWORD 'postgres';
+GRANT ALL PRIVILEGES ON DATABASE bezcisobe TO postgres;
+```
+
+Flyway will create the schema and seed the reference data, races, users, and
+sample rides automatically on first run via migrations `V1`–`V4`.
+
+### Run
 
 ```bash
-npm test              # Watch mode
-npm run test:ui       # UI mode with visualization
-npm run test:coverage # Generate coverage report
+cd backend
+
+# Run unit tests (uses in-memory H2, no Postgres needed)
+mvn test
+
+# Start the API on http://localhost:8080
+mvn spring-boot:run
 ```
 
-### E2E Tests (Playwright)
+### REST surface
 
-- **21 E2E test scenarios** across 4 test files
-- Browsers: Chrome (Chromium) and Firefox
-- Test files: `tests/*.spec.ts`
+| Endpoint                       | Method | Auth        | Purpose                            |
+| ------------------------------ | ------ | ----------- | ---------------------------------- |
+| `/api/auth/register`           | POST   | public      | Create account                     |
+| `/api/auth/login`              | POST   | public      | Issue JWT                          |
+| `/api/auth/me`                 | GET    | bearer      | Current user                       |
+| `/api/races`                   | GET    | public      | List races                         |
+| `/api/races/{id}`              | GET    | public      | Race detail                        |
+| `/api/rides`                   | GET    | public      | List rides (filterable by `raceId`)|
+| `/api/rides`                   | POST   | bearer      | Create OFFER or REQUEST            |
+| `/api/rides/{id}`              | DELETE | bearer      | Delete own ride                    |
+| `/api/rides/{id}/accept`       | POST   | bearer      | Accept an OFFER                    |
+| `/api/rides/{id}/cancel`       | POST   | bearer      | Cancel an acceptance               |
+| `/api/reference-data/*`        | GET    | public      | Track lengths, types, calendars    |
 
-```bash
-npm run e2e          # Run all tests (headless)
-npm run e2e:ui       # UI mode (recommended for debugging)
-npm run e2e:headed   # See browser during tests
-npm run e2e:debug    # Debug mode (step through tests)
-```
+## Test accounts (seed data)
 
-**Test Coverage:**
+| Username        | Password      | Role(s)                |
+| --------------- | ------------- | ---------------------- |
+| `admin`         | `admin123`    | ROLE_ADMIN + ROLE_USER |
+| `jana.novakova` | `password123` | ROLE_USER              |
+| `ivka`          | `ivka123`     | ROLE_USER              |
 
-- `login.spec.ts` - User authentication flows (6 scenarios)
-- `registration.spec.ts` - User registration flows (7 scenarios)
-- `navigation.spec.ts` - Navigation and menu tests (3 scenarios)
-- `races.spec.ts` - Races and rides management (5 scenarios)
-
-**View test reports:**
-
-```bash
-npx playwright show-report
-```
-
-## Test Accounts
-
-- **Admin**: `admin` / `admin123`
-- **User**: `ivka` / `ivka123`
-
-## Project Structure
-
-```
-src/
-├── components/       # Reusable UI components
-│   └── layout/      # Header, Footer, Layout
-├── pages/           # Page components (9 views)
-├── contexts/        # React Context for state management
-├── services/        # API and data services
-├── types/           # TypeScript type definitions
-├── routes/          # App routing configuration
-├── utils/           # Utility functions
-└── test/            # Test utilities and setup
-tests/               # E2E tests (Playwright)
-```
-
-## Technologies
-
-- **Frontend**: React 18 with TypeScript
-- **Build Tool**: Vite 6
-- **Routing**: React Router DOM 6
-- **Styling**: Tailwind CSS 3 + Bootstrap 5
-- **Unit Testing**: Vitest 2 + React Testing Library
-- **E2E Testing**: Playwright 1.48
-- **Data Storage**: LocalStorage (mock backend)
-
-## Security Notes
-
-- Always review `package-lock.json` changes before committing
-- Run `npm audit` regularly to check for vulnerabilities
-- Use `npm audit fix` to automatically fix issues when safe
-- Never ignore security warnings without investigation
+The seed BCrypt hashes were regenerated against
+`BCryptPasswordEncoder` and self-verified — `mvn test
+-Dtest=BCryptHashValidationTest` will fail loudly if a hash drifts
+from its password.
 
 ## Documentation
 
-- **TECHNICKA_DOKUMENTACE.md** - Technical documentation in Czech
+- `TECHNICKA_DOKUMENTACE.md` – Czech-language technical write-up of the
+  full-stack architecture, state management, validation rules, design system,
+  testing strategy, and security notes.
+
+## Security notes
+
+- npm hardening via `.npmrc` (`ignore-scripts=true`, `save-exact=true`,
+  `audit=true`)
+- Source maps disabled in production builds
+- BCrypt cost-10 password hashing on the backend
+- Stateless JWT with HS256, 24 h expiration
+- React's automatic XSS escaping; client-side input validation mirrored by
+  Bean Validation on the API
