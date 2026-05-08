@@ -22,43 +22,34 @@ public class BCryptHashValidationTest {
     @Test
     void validateAdmin123Hash() {
         String password = "admin123";
-        String hash = "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
+        String hash = "$2a$10$mGsI68a2foSCV/fW.wX4Verb4vYuedKEcx8pcddqKwsHgroCiaD96";
 
-        boolean matches = encoder.matches(password, hash);
-        System.out.println("admin123 hash validation: " + (matches ? "VALID" : "INVALID"));
-        if (!matches) {
-            System.out.println("  Password: " + password);
-            System.out.println("  Hash: " + hash);
-            System.out.println("  This hash will NOT work for login. Generate a new one at https://bcrypt-generator.com/");
-        }
+        org.junit.jupiter.api.Assertions.assertTrue(
+            encoder.matches(password, hash),
+            "Seed hash for 'admin' must verify against BCryptPasswordEncoder"
+        );
     }
 
     @Test
     void validatePassword123Hash() {
         String password = "password123";
-        String hash = "$2a$10$8KzaNdKIMyOkASCmBKfLku6RMBQOSBHzHbPVPYhKLCe5YSR5qK8qK";
+        String hash = "$2a$10$XovRDfRfVvmgiXd1rXL7bOTRi/m6KPVmNitbnyUoR97tq8hXh5xfy";
 
-        boolean matches = encoder.matches(password, hash);
-        System.out.println("password123 hash validation: " + (matches ? "VALID" : "INVALID"));
-        if (!matches) {
-            System.out.println("  Password: " + password);
-            System.out.println("  Hash: " + hash);
-            System.out.println("  This hash will NOT work for login. Generate a new one at https://bcrypt-generator.com/");
-        }
+        org.junit.jupiter.api.Assertions.assertTrue(
+            encoder.matches(password, hash),
+            "Seed hash for 'jana.novakova' must verify against BCryptPasswordEncoder"
+        );
     }
 
     @Test
     void validateIvka123Hash() {
         String password = "ivka123";
-        String hash = "$2a$10$VqGMz8.b3CMJkCYxUxKBQeQl8nJvFyLJWigHIB.3O1YMwBuKPLmai";
+        String hash = "$2a$10$4zCsCZ29WwEFxJr6/1DmEeWR.pMMRDzb4ixRtF15u3QPE5W4Gku.y";
 
-        boolean matches = encoder.matches(password, hash);
-        System.out.println("ivka123 hash validation: " + (matches ? "VALID" : "INVALID"));
-        if (!matches) {
-            System.out.println("  Password: " + password);
-            System.out.println("  Hash: " + hash);
-            System.out.println("  This hash will NOT work for login. Generate a new one at https://bcrypt-generator.com/");
-        }
+        org.junit.jupiter.api.Assertions.assertTrue(
+            encoder.matches(password, hash),
+            "Seed hash for 'ivka' must verify against BCryptPasswordEncoder"
+        );
     }
 
     @Test

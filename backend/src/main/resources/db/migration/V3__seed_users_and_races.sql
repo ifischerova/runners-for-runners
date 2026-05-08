@@ -1,17 +1,17 @@
--- Users (BCrypt passwords)
--- admin123   -> $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy
--- password123 -> $2a$10$8KzaNdKIMyOkASCmBKfLku6RMBQOSBHzHbPVPYhKLCe5YSR5qK8qK
--- ivka123    -> $2a$10$VqGMz8.b3CMJkCYxUxKBQeQl8nJvFyLJWigHIB.3O1YMwBuKPLmai
+-- Users (BCrypt cost-10 hashes, regenerated with bcryptjs and verified)
+-- admin123    -> $2a$10$mGsI68a2foSCV/fW.wX4Verb4vYuedKEcx8pcddqKwsHgroCiaD96
+-- password123 -> $2a$10$XovRDfRfVvmgiXd1rXL7bOTRi/m6KPVmNitbnyUoR97tq8hXh5xfy
+-- ivka123     -> $2a$10$4zCsCZ29WwEFxJr6/1DmEeWR.pMMRDzb4ixRtF15u3QPE5W4Gku.y
 
 INSERT INTO users (id, username, email, password, first_name, last_name, city) VALUES
     ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'admin', 'admin@bezcisobe.cz',
-     '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+     '$2a$10$mGsI68a2foSCV/fW.wX4Verb4vYuedKEcx8pcddqKwsHgroCiaD96',
      'Admin', 'User', NULL),
     ('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'jana.novakova', 'jana@example.cz',
-     '$2a$10$8KzaNdKIMyOkASCmBKfLku6RMBQOSBHzHbPVPYhKLCe5YSR5qK8qK',
+     '$2a$10$XovRDfRfVvmgiXd1rXL7bOTRi/m6KPVmNitbnyUoR97tq8hXh5xfy',
      'Jana', 'Nováková', 'Praha'),
     ('c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', 'ivka', 'ivka@bezcisobe.cz',
-     '$2a$10$VqGMz8.b3CMJkCYxUxKBQeQl8nJvFyLJWigHIB.3O1YMwBuKPLmai',
+     '$2a$10$4zCsCZ29WwEFxJr6/1DmEeWR.pMMRDzb4ixRtF15u3QPE5W4Gku.y',
      'Ivka', 'Fischerová', 'Praha');
 
 INSERT INTO user_roles (user_id, role) VALUES
