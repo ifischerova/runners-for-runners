@@ -22,12 +22,15 @@ Běžci sobě je moderní full-stack webová aplikace pro sdílení dopravy mezi
 **Backend:**
 
 - **Framework**: Spring Boot 3.2 (Java 17)
-- **Bezpečnost**: Spring Security + stateless JWT (jjwt 0.12.5)
+- **Bezpečnost**: Spring Security + stateless JWT (jjwt 0.12.5), method security (`@PreAuthorize`)
 - **ORM**: Spring Data JPA + Hibernate
 - **Migrace DB**: Flyway (V1–V4)
 - **Databáze**: PostgreSQL 14+ (produkce/dev), H2 in-memory (testy)
-- **Validace**: `spring-boot-starter-validation` (Bean Validation)
-- **Testy**: JUnit 5 + Mockito + Spring MockMvc
+- **Validace**: `spring-boot-starter-validation` (Bean Validation) + vlastní `@ValidRideRequest` cross-field constraint
+- **API dokumentace**: springdoc-openapi 2.3 (Swagger UI na `/swagger-ui.html`)
+- **Monitoring**: Spring Boot Actuator (`/actuator/health`, `/actuator/info`)
+- **Logování**: SLF4J + Logback (auto-konfigurace), úrovně INFO/WARN/ERROR podle situace
+- **Testy**: JUnit 5 + Mockito + Spring MockMvc + Spring Security Test
 
 ## 2. Architektura aplikace
 
@@ -53,16 +56,17 @@ Běžci sobě je moderní full-stack webová aplikace pro sdílení dopravy mezi
     └── src/main/
         ├── java/cz/bezcisobe/backend/
         │   ├── BackendApplication.java
-        │   ├── config/           # Cors, Security
-        │   ├── controller/       # Auth, Race, Ride, ReferenceData
-        │   ├── dto/              # request, response, mapper
+        │   ├── config/           # Cors, Security, OpenAPI
+        │   ├── controller/       # Auth, Race, Ride, Reference, Admin
+        │   ├── dto/              # request, response (vč. PageResponse), mapper
         │   ├── entity/           # 9 JPA entit
         │   ├── exception/        # Vlastní výjimky + GlobalExceptionHandler
         │   ├── repository/       # Spring Data JPA repozitáře
         │   ├── security/         # JWT filter, provider, UserDetails
-        │   └── service/          # AuthService, RaceService, RideService
+        │   ├── service/          # AuthService, RaceService, RideService, AdminService
+        │   └── validation/       # @ValidRideRequest + ConstraintValidator
         └── resources/
-            ├── application.yml          # Postgres, Flyway, JWT
+            ├── application.yml          # Postgres, Flyway, JWT, Actuator, Swagger, logging
             ├── application-dev.yml      # Dev profil
             └── db/migration/V1..V4__*.sql
 ```
@@ -133,15 +137,21 @@ Soubor `apiService.ts` je tenký REST klient nad `fetch`, který volá backend n
 
 - `getRaces()` – GET `/races`
 - `getRaceById(id)` – GET `/races/{id}`
+- backend navíc nabízí `GET /races/search?q=&from=&trackTypeId=&page=&size=&sort=` se stránkováním a filtry — komplexní JPQL dotaz definovaný přes `@Query` na `RaceRepository`.
 
 **Jízdy (rides):**
 
-- `getRides()` – GET `/rides`
 - `getRidesByRace(raceId)` – GET `/rides?raceId=...`
 - `createRide(payload)` – POST `/rides`
-- `deleteRide(id)` – DELETE `/rides/{id}`
+- `updateRide(id, payload)` – PUT `/rides/{id}` (jen vlastník)
+- `deleteRide(id)` – DELETE `/rides/{id}` (jen vlastník)
 - `acceptRide(rideId)` – POST `/rides/{id}/accept`
 - `cancelRideAcceptance(rideId)` – POST `/rides/{id}/cancel`
+
+**Admin (jen `ROLE_ADMIN`):**
+
+- `GET /api/admin/users?q=&page=&size=` – stránkovaný a vyhledávatelný seznam uživatelů
+- `DELETE /api/admin/rides/{id}` – force-delete jakékoli jízdy
 
 Chyby se na frontendu vyhazují jako `Error` s textem z těla odpovědi (`ErrorResponse.message`), který backend posílá konzistentně přes `GlobalExceptionHandler`.
 
@@ -157,6 +167,14 @@ Chyby se na frontendu vyhazují jako `Error` s textem z těla odpovědi (`ErrorR
    - Heslo: minimálně 6 znaků, musí obsahovat velké i malé písmeno nebo číslo
 
 **Validace na backendu:** každý request DTO má anotace z Bean Validation (`@NotBlank`, `@Email`, `@Size`, `@Min`, …). Pokud klient pošle neplatná data, Spring vrátí `400 Bad Request` přes `GlobalExceptionHandler` s konzistentní strukturou `ErrorResponse`.
+
+**Vlastní validační pravidlo `@ValidRideRequest`** (v balíčku `cz.bezcisobe.backend.validation`) je cross-field constraint na celý DTO. Vynucuje sémantiku, kterou nelze vyjádřit anotacemi na jednotlivých polích:
+
+- pro `type=OFFER` musí být vyplněno `car` a `availableSeats >= 1` (řidič musí říct s čím jede),
+- pro `type=REQUEST` naopak nesmí být `car` vyplněno (běžec auto nemá),
+- nepovolený `type` se odmítne s vlastní hláškou.
+
+Implementace je v `RideRequestValidator`, který přes `ConstraintValidatorContext` reportuje chybu na konkrétní pole (`car`, `availableSeats`), takže klient ví, co opravit. Anotace je použita jak na `CreateRideRequest`, tak `UpdateRideRequest` přes sdílené rozhraní `RideRequestPayload`.
 
 ## 5. TypeScript typování
 
@@ -400,13 +418,56 @@ V `.npmrc` souboru mám nastaveno:
 
 ### 10.2 Bezpečnost aplikace
 
-- **Client-side validace** všech vstupů + serverová Bean Validation
+- **Client-side validace** všech vstupů + serverová Bean Validation + vlastní `@ValidRideRequest`
 - **XSS ochrana**: React automaticky escapuje vstupy
 - **TypeScript**: Pomáhá předcházet chybám už při psaní kódu
 - **Hashování hesel**: BCrypt cost-10 přes Spring `BCryptPasswordEncoder`
 - **Autentizace**: stateless JWT (HS256, 24h platnost), filter ve Spring Security
+- **Autorizace na úrovni metod**: `@EnableMethodSecurity` + `@PreAuthorize("hasRole('ADMIN')")` na `AdminController`. Stejné pravidlo je dublováno i na URL filtru (`/api/admin/**` → `hasRole("ADMIN")`) — defence in depth.
 - **CORS**: explicitně povolený jen pro Vite dev server (`http://localhost:5173`)
-- **Globální exception handler**: nikdy neunikne stack trace klientovi, jen `ErrorResponse`
+- **Globální exception handler**: nikdy neunikne stack trace klientovi, jen `ErrorResponse`. Catch-all handler loguje `ERROR` a vrací 500 s neutrálním textem, takže interní detail nikdy nedoputuje k uživateli.
+
+### 10.3 Role a admin endpointy
+
+V systému existují dvě role: `ROLE_USER` (běžný uživatel) a `ROLE_ADMIN` (administrátor). Rozlišení je viditelné v API skrz dedikovanou sekci `/api/admin/**`:
+
+| Endpoint | Účel |
+|---|---|
+| `GET /api/admin/users?q=&page=&size=` | Stránkovaný seznam uživatelů s vyhledáváním (admin nástroj) |
+| `DELETE /api/admin/rides/{id}` | Force-delete jakékoli jízdy (obchází kontrolu vlastníka) |
+
+Tyto endpointy běžný uživatel ani anonym nedovolá — Spring vrací `401` resp. `403`, hláška se přemapuje na `ErrorResponse` v `GlobalExceptionHandler`.
+
+### 10.4 Logování
+
+Backend používá SLF4J + Logback (auto-konfigurace Spring Bootu). Úrovně:
+
+| Úroveň | Co se loguje | Příklad |
+|---|---|---|
+| `INFO` | Business události | `User 'ivka' logged in successfully (roles=[ROLE_USER])`, `Ride {id} created by user {id}` |
+| `WARN` | Klientské chyby a podezřelé pokusy | `Validation failed: ...`, `User X attempted to delete ride Y owned by Z` |
+| `ERROR` | Neočekávané servery výjimky | catch-all v `GlobalExceptionHandler#handleUnexpected` |
+| `DEBUG` | Diagnostika (JWT validace) | `JWT validation failed: signature does not match` |
+
+Konfigurace úrovní je v `application.yml` (`logging.level.*`). Format logu obsahuje timestamp, level, thread a logger.
+
+### 10.5 Monitoring – Actuator
+
+Spring Boot Actuator vystavuje minimální monitorovací povrch:
+
+- `GET /actuator/health` – stav aplikace a vnořené probes (`/liveness`, `/readiness`)
+- `GET /actuator/info` – metadata o sestavení (název, verze, popis z `application.yml`)
+
+Detaily ve `health` jsou zobrazené jen autentizovanému volajícímu (`show-details=when_authorized`), aby anonym neviděl interní stav. Ostatní actuator endpointy jsou v `application.yml` schválně neexponované.
+
+### 10.6 API dokumentace – Swagger / OpenAPI
+
+springdoc-openapi automaticky generuje OpenAPI 3 spec z anotací v controllerech. Po spuštění backendu:
+
+- `http://localhost:8080/swagger-ui.html` – interaktivní UI
+- `http://localhost:8080/v3/api-docs` – raw JSON spec
+
+Konfigurace `OpenApiConfig` přidává JWT bearer security scheme — v UI lze přes tlačítko **Authorize** zadat token z `/api/auth/login` a chráněné endpointy se rovnou volají z prohlížeče. Každý endpoint má `@Operation` se shrnutím a `@ApiResponses` s popsanými chybovými stavy.
 
 ## 11. Známé problémy a omezení
 
@@ -429,6 +490,17 @@ Pro reálný provoz by byla ještě potřeba:
 - Mobilní aplikace
 
 ## 12. Spuštění projektu
+
+### 12.0 Adresy služeb po spuštění
+
+| URL | Co tam je |
+|---|---|
+| `http://localhost:5173` | Frontend (Vite dev server) |
+| `http://localhost:8080` | Backend REST API |
+| `http://localhost:8080/swagger-ui.html` | Swagger UI s autorizací přes JWT |
+| `http://localhost:8080/v3/api-docs` | OpenAPI 3 JSON spec |
+| `http://localhost:8080/actuator/health` | Health-check |
+| `http://localhost:8080/actuator/info` | Build / verze |
 
 ### 12.1 Předpoklady
 
