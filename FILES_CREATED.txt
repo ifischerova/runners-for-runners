@@ -1,0 +1,77 @@
+================================================================================
+BCRYPT HASH VERIFICATION - FILES CREATED AND MODIFIED
+================================================================================
+
+CREATED - Test Class:
+  backend/src/test/java/cz/bezcisobe/backend/util/BCryptHashValidationTest.java
+  Purpose: Validate current hashes and generate valid ones
+  Run: mvn test -Dtest=BCryptHashValidationTest#generateNewHashes
+
+CREATED - Documentation Files:
+
+  1. QUICK_START.md (READ THIS FIRST!)
+     - Simple 4-step solution
+     - Copy-paste commands
+     - 5-10 minute fix
+
+  2. BCRYPT_SUMMARY.md
+     - Quick reference
+     - Problem overview
+     - Key facts
+
+  3. BCRYPT_HASH_VERIFICATION.md
+     - Technical details
+     - BCrypt format explained
+     - Multiple approaches
+
+  4. BCRYPT_REPLACEMENT_GUIDE.md
+     - Detailed step-by-step instructions
+     - Two methods (test and online)
+     - Verification procedures
+     - Troubleshooting
+
+  5. SESSION_NOTES.md
+     - Summary of this work session
+     - What needs to be done next
+     - Status and timeline
+
+  6. FILES_CREATED.txt (this file)
+     - Directory of created files
+
+TO IMPLEMENT:
+================================================================================
+1. Read: QUICK_START.md
+2. Run: mvn test -Dtest=BCryptHashValidationTest#generateNewHashes
+3. Copy generated hashes
+4. Update: backend/src/main/resources/db/migration/V3__seed_users_and_races.sql
+5. Test login with new credentials
+
+ORIGINAL FILE TO UPDATE:
+================================================================================
+  backend/src/main/resources/db/migration/V3__seed_users_and_races.sql
+  Lines to change: 8, 11, 14 (the password hash values)
+
+CURRENT HASHES (LIKELY INVALID):
+================================================================================
+  admin123   -> $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy
+  password123 -> $2a$10$8KzaNdKIMyOkASCmBKfLku6RMBQOSBHzHbPVPYhKLCe5YSR5qK8qK
+  ivka123    -> $2a$10$VqGMz8.b3CMJkCYxUxKBQeQl8nJvFyLJWigHIB.3O1YMwBuKPLmai
+
+QUICK COMMAND:
+================================================================================
+  cd backend
+  mvn test -Dtest=BCryptHashValidationTest#generateNewHashes
+
+ALTERNATE (ONLINE TOOL):
+================================================================================
+  https://bcrypt-generator.com/
+  1. Enter password
+  2. Set cost to 10
+  3. Click "Hash"
+  4. Copy result into SQL file
+
+TIME ESTIMATE: 10 minutes
+RISK LEVEL: Minimal (test credentials only)
+PRIORITY: Medium (blocks login functionality)
+
+================================================================================
