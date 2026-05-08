@@ -7,11 +7,13 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+/**
+ * Payload for {@code PUT /api/rides/{id}}. Same shape and constraints as
+ * {@link CreateRideRequest} except {@code raceId} cannot be changed (a ride
+ * is bound to its race for life).
+ */
 @ValidRideRequest
-public record CreateRideRequest(
-        @NotNull(message = "ID závodu je povinné")
-        Long raceId,
-
+public record UpdateRideRequest(
         @NotBlank(message = "Typ jízdy je povinný")
         String type,
 
