@@ -26,3 +26,44 @@ app:
 
 server:
   port: 8080
+
+# Actuator: expose health + info endpoints for monitoring (no sensitive data)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: Bezci sobe backend
+    description: REST API for the runners' carpooling platform
+    version: 1.0.0
+
+# springdoc-openapi: Swagger UI at /swagger-ui/index.html, JSON at /v3/api-docs
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+
+# Logging levels: app at DEBUG in dev, framework noise at WARN
+logging:
+  level:
+    root: INFO
+    cz.bezcisobe.backend: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"
