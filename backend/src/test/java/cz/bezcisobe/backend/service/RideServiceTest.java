@@ -1,6 +1,7 @@
 package cz.bezcisobe.backend.service;
 
 import cz.bezcisobe.backend.dto.mapper.RideMapper;
+import cz.bezcisobe.backend.dto.request.UpdateRideRequest;
 import cz.bezcisobe.backend.dto.response.RideResponse;
 import cz.bezcisobe.backend.entity.*;
 import cz.bezcisobe.backend.exception.BadRequestException;
@@ -114,5 +115,74 @@ class RideServiceTest {
         when(rideRepository.findById(rideId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> rideService.deleteRide(rideId, ownerId));
+    }
+
+    @Test
+    void updateRide_byOwner_success() {
+        UpdateRideRequest req = new UpdateRideRequest(
+                "OFFER", "Brno", "Praha", "Škoda", 2, "Updated note");
+        when(rideRepository.findById(rideId)).thenReturn(Optional.of(ride));
+        when(rideRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(rideMapper.toResponse(any())).thenReturn(
+                new RideResponse(rideId.toString(), "1", ownerId.toString(), "OFFER",
+                        "Brno", "Praha", "Škoda", 2, 0, List.of(), "Updated note", Instant.now().toString()));
+
+        RideResponse result = rideService.updateRide(rideId, req, ownerId);
+
+        assertNotNull(result);
+        assertEquals("Brno", ride.getFrom());
+        assertEquals("Škoda", ride.getCar());
+        assertEquals(2, ride.getAvailableSeats());
+    }
+
+    @Test
+    void updateRide_notOwner() {
+        UpdateRideRequest req = new UpdateRideRequest(
+                "OFFER", "Brno", "Praha", "Škoda", 2, null);
+        when(rideRepository.findById(rideId)).thenReturn(Optional.of(ride));
+
+        assertThrows(BadRequestException.class,
+                () -> rideService.updateRide(rideId, req, passengerId));
+    }
+
+    @Test
+    void updateRide_seatsBelowOccupied() {
+        ride.setOccupiedSeats(2);
+        UpdateRideRequest req = new UpdateRideRequest(
+                "OFFER", "Praha", null, "Škoda", 1, null);
+        when(rideRepository.findById(rideId)).thenReturn(Optional.of(ride));
+
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> rideService.updateRide(rideId, req, ownerId));
+        assertTrue(ex.getMessage().contains("2"),
+                "Error message should mention current occupant count");
+    }
+
+    @Test
+    void updateRide_notFound() {
+        UpdateRideRequest req = new UpdateRideRequest(
+                "OFFER", "Praha", null, "Škoda", 1, null);
+        when(rideRepository.findById(rideId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> rideService.updateRide(rideId, req, ownerId));
+    }
+
+    @Test
+    void deleteRideAsAdmin_success() {
+        UUID adminId = UUID.randomUUID();
+        when(rideRepository.findById(rideId)).thenReturn(Optional.of(ride));
+
+        rideService.deleteRideAsAdmin(rideId, adminId);
+
+        verify(rideRepository).delete(ride);
+    }
+
+    @Test
+    void deleteRideAsAdmin_notFound() {
+        when(rideRepository.findById(rideId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> rideService.deleteRideAsAdmin(rideId, UUID.randomUUID()));
     }
 }
