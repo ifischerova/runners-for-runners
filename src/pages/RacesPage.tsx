@@ -84,7 +84,7 @@ export const RacesPage = () => {
       });
       setShowCreateForm(false);
       alert('Jízda byla úspěšně vytvořena!');
-    } catch (error) {
+    } catch {
       alert('Chyba při vytváření jízdy');
     }
   };
@@ -99,7 +99,7 @@ export const RacesPage = () => {
       const loadedRides = await apiService.getRidesByRace(selectedRace);
       setRides(loadedRides);
       alert('Jízda byla úspěšně smazána');
-    } catch (error) {
+    } catch {
       alert('Chyba při mazání jízdy');
     }
   };

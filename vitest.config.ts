@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
@@ -26,5 +27,4 @@ export default defineConfig({
       ],
     },
   },
-  // @ts-ignore - Vitest adds test property to Vite config
-} as any)
+})

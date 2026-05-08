@@ -16,7 +16,7 @@ export default defineConfig({
   },
   build: {
     sourcemap: false, // Security: don't expose source maps in production
-    minify: 'terser',
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { apiService } from '../services/apiService';
+import { RideType } from '../types';
 
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
@@ -78,7 +79,7 @@ describe('API Service', () => {
 
       const result = await apiService.createRide({
         raceId: '1',
-        type: 'OFFER' as any,
+        type: RideType.OFFER,
         from: 'Brno',
         to: 'Praha',
         car: 'Škoda Octavia',

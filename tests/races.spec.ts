@@ -10,7 +10,7 @@ async function login(page: Page, username: string, password: string) {
 }
 
 test.describe('Races and Rides Management', () => {
-  test.beforeEach(async ({ page, context }) => {
+  test.beforeEach(async ({ context }) => {
     await context.clearCookies();
   });
 
