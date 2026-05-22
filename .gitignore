@@ -19,6 +19,9 @@ dist-ssr
 backend/target/
 *.class
 
+# Local seed-data tooling (scripts and their scraped JSON output)
+backend/scripts/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

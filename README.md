@@ -164,11 +164,26 @@ at ERROR (`GlobalExceptionHandler#handleUnexpected`).
 
 ## Test accounts (seed)
 
+V3 baseline accounts:
+
 | Username        | Password      | Roles                          |
 | --------------- | ------------- | ------------------------------ |
 | `admin`         | `admin123`    | `ROLE_ADMIN`, `ROLE_USER`      |
 | `jana.novakova` | `password123` | `ROLE_USER`                    |
 | `ivka`          | `ivka123`     | `ROLE_USER`                    |
+
+V5 additional accounts (seeded alongside the 800+ scraped 2026 races):
+
+| Username                | Password      | City              |
+| ----------------------- | ------------- | ----------------- |
+| `petr.svoboda`          | `heslo2026`   | Praha             |
+| `martina.dvorakova`     | `runner2026`  | Brno              |
+| `tomas.cerny`           | `sportak42`   | Ostrava           |
+| `katerina.prochazkova`  | `bezec2026`   | Plzeň             |
+| `jakub.kucera`          | `kucera2026`  | Olomouc           |
+| `lucie.vesela`          | `lucie2026`   | Liberec           |
+| `david.horak`           | `horak2026`   | Hradec Králové    |
+| `eva.benesova`          | `benesova26`  | České Budějovice  |
 
 The seed BCrypt hashes were regenerated against
 `BCryptPasswordEncoder` and self-verified — `mvn test
