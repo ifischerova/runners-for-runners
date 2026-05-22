@@ -14,7 +14,7 @@ export const ProfilePage = () => {
         <div className="inline-block w-20 h-20 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center mb-4 mx-auto">
           <span className="text-4xl"></span>
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-2">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-2 leading-tight">
           Můj profil
         </h1>
         <p className="text-dark-600">Vítej zpět, {user.username}!</p>

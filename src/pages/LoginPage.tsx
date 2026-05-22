@@ -44,7 +44,7 @@ export const LoginPage = () => {
         <div className="inline-block w-16 h-16 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center mb-4 mx-auto animate-bounce-slow">
           <span className="text-3xl">🏃</span>
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-3">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-3 leading-tight">
           Vítej zpět, běžče!
         </h1>
         <p className="text-dark-600">Přihlas se a pokračuj v plánování svých cest na závody</p>

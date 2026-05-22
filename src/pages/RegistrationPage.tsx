@@ -96,7 +96,7 @@ export const RegistrationPage = () => {
         <div className="inline-block w-16 h-16 bg-gradient-to-br from-accent-500 to-primary-500 rounded-2xl flex items-center justify-center mb-4 mx-auto animate-bounce-slow">
           <span className="text-3xl">🎉</span>
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-accent-600 to-primary-600 bg-clip-text text-transparent mb-3">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-accent-600 to-primary-600 bg-clip-text text-transparent mb-3 leading-tight">
           Staň se jedním z nás!
         </h1>
         <p className="text-dark-600">Registruj se zdarma a začni sdílet cesty s běžeckou komunitou</p>

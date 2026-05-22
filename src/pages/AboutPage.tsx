@@ -2,7 +2,7 @@ export const AboutPage = () => {
   return (
     <div className="section-container animate-fade-in">
       <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-4">
+        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-4 leading-tight">
           O projektu Běžci sobě
         </h1>
         <p className="text-lg text-dark-600 max-w-2xl mx-auto">
