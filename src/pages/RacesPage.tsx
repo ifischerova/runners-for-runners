@@ -402,7 +402,11 @@ export const RacesPage = () => {
 
                   <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                     <div className="text-sm text-dark-600">
-                      Uživatel: <span className="font-semibold">{ride.userId}</span>
+                      Uživatel: <span className="font-semibold">
+                        {ride.userFirstName && ride.userLastName
+                          ? `${ride.userFirstName} ${ride.userLastName}`
+                          : ride.userUsername}
+                      </span>
                     </div>
                     <div className="flex gap-2">
                       {isAuthenticated && ride.userId === user?.id && (

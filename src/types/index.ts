@@ -60,6 +60,9 @@ export interface Ride {
   id: string;
   raceId: string;
   userId: string;
+  userUsername: string;
+  userFirstName?: string;
+  userLastName?: string;
   type: RideType;
   from: string;
   to?: string;

@@ -68,7 +68,8 @@ class RideServiceTest {
         when(userRepository.findById(passengerId)).thenReturn(Optional.of(passenger));
         when(rideRepository.save(any())).thenReturn(ride);
         when(rideMapper.toResponse(any())).thenReturn(
-                new RideResponse(rideId.toString(), "1", ownerId.toString(), "OFFER",
+                new RideResponse(rideId.toString(), "1", ownerId.toString(),
+                        "owner", "Owner", "Tester", "OFFER",
                         "Praha", null, null, 3, 1, List.of(passengerId.toString()), null, Instant.now().toString()));
 
         RideResponse result = rideService.acceptRide(rideId, passengerId);
@@ -124,7 +125,8 @@ class RideServiceTest {
         when(rideRepository.findById(rideId)).thenReturn(Optional.of(ride));
         when(rideRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(rideMapper.toResponse(any())).thenReturn(
-                new RideResponse(rideId.toString(), "1", ownerId.toString(), "OFFER",
+                new RideResponse(rideId.toString(), "1", ownerId.toString(),
+                        "owner", "Owner", "Tester", "OFFER",
                         "Brno", "Praha", "Škoda", 2, 0, List.of(), "Updated note", Instant.now().toString()));
 
         RideResponse result = rideService.updateRide(rideId, req, ownerId);

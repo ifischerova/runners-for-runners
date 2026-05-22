@@ -16,10 +16,14 @@ public class RideMapper {
                 .map(Object::toString)
                 .toList();
 
+        User owner = ride.getUser();
         return new RideResponse(
                 ride.getId().toString(),
                 ride.getRace().getId().toString(),
-                ride.getUser().getId().toString(),
+                owner.getId().toString(),
+                owner.getUsername(),
+                owner.getFirstName(),
+                owner.getLastName(),
                 ride.getType().name(),
                 ride.getFrom(),
                 ride.getTo(),
