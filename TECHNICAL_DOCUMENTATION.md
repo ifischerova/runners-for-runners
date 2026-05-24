@@ -19,7 +19,8 @@ current version has a real backend with a database and JWT authentication.
 - **Framework**: React 18 with TypeScript
 - **Build tool**: Vite 6 (faster than Webpack)
 - **Routing**: React Router DOM v6
-- **Styling**: Tailwind CSS 3 + Bootstrap 5
+- **Styling**: Tailwind CSS 3 (utility-first)
+- **Icons**: lucide-react – wireframe / line-style icons (stroke-width 1.5)
 - **State management**: React Context API
 - **Backend communication**: native `fetch`, JWT in `Authorization: Bearer`
 - **Testing**: Vitest + React Testing Library (unit), Playwright (E2E)
@@ -30,7 +31,7 @@ current version has a real backend with a database and JWT authentication.
 - **Framework**: Spring Boot 3.2 (Java 17)
 - **Security**: Spring Security + stateless JWT (jjwt 0.12.5), method security (`@PreAuthorize`)
 - **ORM**: Spring Data JPA + Hibernate
-- **DB migrations**: Flyway (V1–V4)
+- **DB migrations**: Flyway (V1–V7)
 - **Database**: PostgreSQL 14+ (prod/dev), H2 in-memory (tests)
 - **Validation**: `spring-boot-starter-validation` (Bean Validation) + custom `@ValidRideRequest` cross-field constraint
 - **API docs**: springdoc-openapi 2.3 (Swagger UI at `/swagger-ui.html`)
@@ -74,7 +75,7 @@ current version has a real backend with a database and JWT authentication.
         └── resources/
             ├── application.yml          # Postgres, Flyway, JWT, Actuator, Swagger, logging
             ├── application-dev.yml      # Dev profile
-            └── db/migration/V1..V4__*.sql
+            └── db/migration/V1..V7__*.sql
 ```
 
 ### 2.2 Pages
@@ -123,13 +124,16 @@ database. The frontend uses LocalStorage only for the JWT token
 All domain data (users, races, rides, reference tables) lives in the
 database and the frontend fetches it over REST.
 
-The database schema and initial data are managed by Flyway with four
+The database schema and initial data are managed by Flyway with seven
 migrations:
 
 - `V1__create_schema.sql` – tables and relationships
 - `V2__seed_reference_data.sql` – reference tables (track lengths, track types, certifications, calendars)
-- `V3__seed_users_and_races.sql` – test users (BCrypt cost-10) and races for 2026
-- `V4__seed_rides.sql` – sample rides
+- `V3__seed_users_and_races.sql` – initial test users (BCrypt cost-10, self-verified by a test) and 10 hand-crafted races for 2026
+- `V4__seed_rides.sql` – sample rides for two of those races
+- `V5__seed_more_races_users_rides.sql` – 851 races for the rest of the 2026 season (scraped from [ceskybeh.cz/terminovka](https://ceskybeh.cz/terminovka/)), 8 more accounts, and 25 sample rides; race ids start at 100 so the 1..99 range stays free for hand-curated entries
+- `V6__seed_2027_races_and_remaining_rides.sql` – 10 races for 2027 under a new `race_calendars` row (`is_active=FALSE`), plus 834 rides so every 2026 race has at least one
+- `V7__fix_ride_destinations.sql` – a single `UPDATE` that sets `destination_to` on OFFER rides to `races.place` (the V5/V6 generators initially picked a random destination, which produced nonsensical pairs like "Plzeň → Zlín" for a race held in Praha)
 
 ## 4. Working with data
 
@@ -261,13 +265,13 @@ enum Role {
 
 **What I test:**
 
-- `apiService.test.ts` – all API functions (31 tests)
+- `apiService.test.ts` – all API functions
 - `validation.test.ts` – validation functions for email, password, etc.
 - `Footer.test.tsx` – footer component
 - `HomePage.test.tsx` – home page component
 - `LoginPage.test.tsx` – login page with validation
 
-**31 unit tests total**
+**26 unit tests in total across 5 files** (verified with `npm test -- --run`)
 
 **How to run:**
 
@@ -335,6 +339,11 @@ npm run e2e:debug    # Debug mode – step by step
 
 ### 7.1 Tailwind CSS configuration
 
+Styling is pure Tailwind CSS 3 — no other CSS framework (the original
+version of the project imported Bootstrap 5, but it sat unused in
+`package.json` and also broke `line-height` on gradient headings via
+an unlayered `h1 { line-height: 1.2 }` rule, so I removed it).
+
 I used a custom colour palette in a running theme:
 
 **Primary colours (orange)**: `#f97316` – main colour for CTA buttons
@@ -346,7 +355,8 @@ I used a custom colour palette in a running theme:
 I used several modern design techniques in the app:
 
 - **Glassmorphism**: translucent cards with a blur effect (visible in the Header)
-- **Gradient text**: colour transitions in headings
+- **Gradient text**: colour transitions in headings (`bg-clip-text text-transparent` with the `text-Nxl/tight` slash syntax and `pb-[5px]` so j/p/g descenders don't get clipped at the bottom of the gradient region)
+- **Wireframe icons**: the `lucide-react` library with stroke-width 1.5; icons inside colored gradient badges render white, icons on light cards use `text-primary-600` / `text-accent-600`
 - **Animations**: fade-in, slide-up, bounce effects
 - **Rounded design**: rounded corners everywhere
 - **Shadow effects**: multiple shadow levels for depth
@@ -365,7 +375,7 @@ The app works on all devices:
 
 **Race selection:**
 
-- Test list of races for 2026 (10 races in total)
+- Real race calendar: 861 races for 2026 (scraped from [ceskybeh.cz/terminovka](https://ceskybeh.cz/terminovka/)) plus 10 races for early 2027 in a separate inactive calendar
 - Race detail after selection (date, start time, place, web)
 
 **Ride management:**
@@ -391,8 +401,14 @@ The app works on all devices:
 
 **Test accounts:**
 
-- Admin: `admin` / `admin123`
-- User: `ivka` / `ivka123`
+- Admin: `admin` / `admin123` (`ROLE_ADMIN` + `ROLE_USER`)
+- Users: `ivka` / `ivka123`, `jana.novakova` / `password123`
+- Plus 8 more accounts added by the V5 migration (`petr.svoboda` / `heslo2026`,
+  `martina.dvorakova` / `runner2026`, `tomas.cerny` / `sportak42`,
+  `katerina.prochazkova` / `bezec2026`, `jakub.kucera` / `kucera2026`,
+  `lucie.vesela` / `lucie2026`, `david.horak` / `horak2026`,
+  `eva.benesova` / `benesova26`). The full list lives in the README; every
+  hash is self-verified by `BCryptHashValidationTest`.
 
 **New account registration:**
 
@@ -449,7 +465,8 @@ In the `.npmrc` file I have:
 - **XSS protection**: React automatically escapes inputs
 - **TypeScript**: helps prevent bugs while writing the code
 - **Password hashing**: BCrypt cost-10 via Spring `BCryptPasswordEncoder`
-- **Authentication**: stateless JWT (HS256, 24 h validity), Spring Security filter
+- **Authentication**: stateless JWT (HS256, 24 h validity), Spring Security filter. The signing secret is read from the `JWT_SECRET` env var with a clearly-marked dev placeholder as the fallback — production deployments must set the variable.
+- **Secret configuration**: Postgres credentials (`DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`) and the JWT secret (`JWT_SECRET`) are read exclusively from env vars; the YAML only holds dev defaults for local runs, those values should never reach any production environment.
 - **Method-level authorization**: `@EnableMethodSecurity` + `@PreAuthorize("hasRole('ADMIN')")` on `AdminController`. The same rule is duplicated on the URL filter (`/api/admin/**` → `hasRole("ADMIN")`) — defence in depth.
 - **CORS**: explicitly allowed only for the Vite dev server (`http://localhost:5173`)
 - **Global exception handler**: a stack trace never leaks to the client, only `ErrorResponse`. The catch-all handler logs at `ERROR` and returns 500 with a neutral message, so internal details never reach the user.
@@ -513,9 +530,9 @@ browser. Each endpoint carries `@Operation` with a summary and
 
 ### 11.1 Operational assumptions
 
-- The backend needs a running PostgreSQL on `localhost:5432` with the `bezcisobe` database (parameters in `application.yml`).
+- The backend needs a running PostgreSQL on `localhost:5432` with the `bezcisobe` database (default parameters in `application.yml`, overridable via the `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` env vars).
 - The frontend expects the backend at `http://localhost:8080`. The address is hard-coded in `apiService.ts` – for production it would be in an env var.
-- The JWT secret in `application.yml` is committed for demo purposes – in production it would belong in a secret store (Vault, Azure Key Vault, env).
+- The JWT secret is read from the `JWT_SECRET` env var; the YAML only holds a dev placeholder, so the app boots out of the box but a real secret has to be set in production (Vault, Azure Key Vault, …).
 
 ### 11.2 Missing features
 

@@ -88,7 +88,9 @@ CREATE DATABASE bezcisobe;
 ```
 
 Flyway creates the schema and seeds reference data, races, users, and sample
-rides automatically on first run via migrations `V1`–`V4`.
+rides automatically on first run via migrations `V1`–`V7` (the V5/V6 seeds
+fill the 2026 calendar from a public race scraper, V7 patches a ride
+destination bug in earlier seed data).
 
 ### Run
 

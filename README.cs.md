@@ -88,7 +88,9 @@ CREATE DATABASE bezcisobe;
 ```
 
 Flyway sám vytvoří schéma a naseeduje číselníky, závody, uživatele a
-ukázkové jízdy přes migrace `V1`–`V4` při prvním spuštění.
+ukázkové jízdy přes migrace `V1`–`V7` při prvním spuštění (V5/V6
+naplní kalendář 2026 scraperem ze [ceskybeh.cz/terminovka](https://ceskybeh.cz/terminovka/),
+V7 opraví chybu v destinacích jízd, kterou nasypaly předchozí seedy).
 
 ### Spuštění
 

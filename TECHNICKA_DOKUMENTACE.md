@@ -15,7 +15,8 @@ Běžci sobě je moderní full-stack webová aplikace pro sdílení dopravy mezi
 - **Framework**: React 18 s TypeScriptem
 - **Build nástroj**: Vite 6 (rychlejší než Webpack)
 - **Navigace**: React Router DOM v6
-- **Styling**: Tailwind CSS 3 + Bootstrap 5
+- **Styling**: Tailwind CSS 3 (utility-first)
+- **Ikony**: lucide-react – wireframe / line-style ikony (stroke-width 1.5)
 - **Správa stavu**: React Context API
 - **Komunikace s backendem**: nativní `fetch`, JWT v `Authorization: Bearer`
 - **Testování**: Vitest + React Testing Library (unit), Playwright (E2E)
@@ -26,7 +27,7 @@ Běžci sobě je moderní full-stack webová aplikace pro sdílení dopravy mezi
 - **Framework**: Spring Boot 3.2 (Java 17)
 - **Bezpečnost**: Spring Security + stateless JWT (jjwt 0.12.5), method security (`@PreAuthorize`)
 - **ORM**: Spring Data JPA + Hibernate
-- **Migrace DB**: Flyway (V1–V4)
+- **Migrace DB**: Flyway (V1–V7)
 - **Databáze**: PostgreSQL 14+ (produkce/dev), H2 in-memory (testy)
 - **Validace**: `spring-boot-starter-validation` (Bean Validation) + vlastní `@ValidRideRequest` cross-field constraint
 - **API dokumentace**: springdoc-openapi 2.3 (Swagger UI na `/swagger-ui.html`)
@@ -70,7 +71,7 @@ Běžci sobě je moderní full-stack webová aplikace pro sdílení dopravy mezi
         └── resources/
             ├── application.yml          # Postgres, Flyway, JWT, Actuator, Swagger, logging
             ├── application-dev.yml      # Dev profil
-            └── db/migration/V1..V4__*.sql
+            └── db/migration/V1..V7__*.sql
 ```
 
 ### 2.2 Popis jednotlivých stránek
@@ -115,12 +116,15 @@ interface AuthContextType {
 
 Aplikace má reálný Spring Boot backend, který data ukládá do PostgreSQL databáze. Frontend používá LocalStorage pouze pro JWT token (`bezci_sobe_token`), aby uživatel zůstal přihlášený i po obnovení stránky. Veškerá doménová data (uživatelé, závody, jízdy, číselníky) jsou v databázi a frontend si je tahá přes REST.
 
-Schéma databáze a počáteční data spravuje Flyway čtyřmi migracemi:
+Schéma databáze a počáteční data spravuje Flyway sedmi migracemi:
 
 - `V1__create_schema.sql` – tabulky a vztahy
 - `V2__seed_reference_data.sql` – číselníky (délky tratí, typy tratí, certifikace, kalendáře)
-- `V3__seed_users_and_races.sql` – testovací uživatelé (BCrypt cost-10) a závody pro rok 2026
-- `V4__seed_rides.sql` – ukázkové jízdy
+- `V3__seed_users_and_races.sql` – počáteční testovací uživatelé (BCrypt cost-10, samoověřené testem) a 10 ručně vytvořených závodů pro rok 2026
+- `V4__seed_rides.sql` – ukázkové jízdy ke dvěma závodům
+- `V5__seed_more_races_users_rides.sql` – 851 závodů pro zbytek sezóny 2026 (data scrapnutá z [ceskybeh.cz/terminovka](https://ceskybeh.cz/terminovka/)), dalších 8 účtů a 25 ukázkových jízd; IDs závodů startují na 100, aby zůstal rozsah 1..99 pro ručně přidávaná data
+- `V6__seed_2027_races_and_remaining_rides.sql` – 10 závodů pro rok 2027 pod novým `race_calendars` záznamem (`is_active=FALSE`) a 834 jízd, takže každý závod v 2026 má alespoň jednu jízdu
+- `V7__fix_ride_destinations.sql` – jediný `UPDATE` opravující `destination_to` u OFFER jízd na hodnotu `races.place` (generátory v V5/V6 vybíraly cíl náhodně, čímž vznikaly nesmyslné kombinace typu „Plzeň → Zlín“ pro závod v Praze)
 
 ## 4. Práce s daty
 
@@ -237,13 +241,13 @@ enum Role {
 
 **Co testuji:**
 
-- `apiService.test.ts` - všechny API funkce (31 testů)
-- `validation.test.ts` - validační funkce pro email, heslo atd.
-- `Footer.test.tsx` - footer komponenta
-- `HomePage.test.tsx` - home page komponenta
-- `LoginPage.test.tsx` - login page s validací
+- `apiService.test.ts` – všechny API funkce
+- `validation.test.ts` – validační funkce pro email, heslo atd.
+- `Footer.test.tsx` – footer komponenta
+- `HomePage.test.tsx` – home page komponenta
+- `LoginPage.test.tsx` – login page s validací
 
-**Celkem 31 unit testů**
+**Celkem 26 unit testů napříč 5 soubory** (ověřeno přes `npm test -- --run`)
 
 **Jak spustit:**
 
@@ -311,21 +315,27 @@ npm run e2e:debug    # Debug mód - krok po kroku
 
 ### 7.1 Tailwind CSS konfigurace
 
+Stylování je čistě Tailwind CSS 3 — žádný další CSS framework (původní
+verze projektu importovala Bootstrap 5, ale ten zůstal v `package.json`
+nevyužitý a navíc rozbíjel `line-height` u gradientových nadpisů přes
+unlayered `h1 { line-height: 1.2 }`, takže jsem ho odstranila).
+
 Použila jsem vlastní barevnou paletu v běžeckém stylu:
 
-**Primary barvy (oranžová)**: `#f97316` - hlavní barva pro CTA tlačítka
-**Accent barvy (zelená)**: `#22c55e` - pro ekologické prvky
-**Dark barvy**: Pro texty a pozadí
+**Primary barvy (oranžová)**: `#f97316` – hlavní barva pro CTA tlačítka
+**Accent barvy (zelená)**: `#22c55e` – pro ekologické prvky
+**Dark barvy**: pro texty a pozadí
 
 ### 7.2 Moderní design prvky
 
 V aplikaci jsem použila několik moderních design technik:
 
-- **Glassmorphism**: Průhledné karty s blur efektem (vidět v Header)
-- **Gradient texty**: Barevné přechody v nadpisech
-- **Animace**: Fade-in, slide-up, bounce efekty
-- **Rounded design**: Zaoblené rohy všude
-- **Shadow effects**: Různé úrovně stínů pro hloubku
+- **Glassmorphism**: průhledné karty s blur efektem (vidět v Header)
+- **Gradient texty**: barevné přechody v nadpisech (`bg-clip-text text-transparent` se slash syntax `text-Nxl/tight` a `pb-[5px]`, aby descendery na j/p/g neřízly přes spodní hranici gradientu)
+- **Wireframe ikony**: knihovna `lucide-react` se stroke-width 1.5; ikony v barevných gradient badge se renderují bíle, ikony na světlých kartách v `text-primary-600` / `text-accent-600`
+- **Animace**: fade-in, slide-up, bounce efekty
+- **Rounded design**: zaoblené rohy všude
+- **Shadow effects**: různé úrovně stínů pro hloubku
 
 ### 7.3 Responzivní design
 
@@ -341,7 +351,7 @@ Aplikace funguje na všech zařízeních:
 
 **Výběr závodu:**
 
-- Testovací seznam závodů v roce 2026 (10 závodů celkem)
+- Reálný kalendář závodů: 861 závodů pro rok 2026 (data scrapnutá z [ceskybeh.cz/terminovka](https://ceskybeh.cz/terminovka/)) plus 10 závodů na začátek roku 2027 v samostatném neaktivním kalendáři
 - Detail závodu po výběru (datum, čas startu, místo, web)
 
 **Správa jízd:**
@@ -367,8 +377,14 @@ Aplikace funguje na všech zařízeních:
 
 **Testovací účty:**
 
-- Admin: `admin` / `admin123`
-- Uživatel: `ivka` / `ivka123`
+- Admin: `admin` / `admin123` (`ROLE_ADMIN` + `ROLE_USER`)
+- Uživatel: `ivka` / `ivka123`, `jana.novakova` / `password123`
+- Plus 8 dalších účtů přidaných v migraci V5 (`petr.svoboda` / `heslo2026`,
+  `martina.dvorakova` / `runner2026`, `tomas.cerny` / `sportak42`,
+  `katerina.prochazkova` / `bezec2026`, `jakub.kucera` / `kucera2026`,
+  `lucie.vesela` / `lucie2026`, `david.horak` / `horak2026`,
+  `eva.benesova` / `benesova26`). Kompletní seznam je v README; všechny
+  hashe se samy ověřují v `BCryptHashValidationTest`.
 
 **Registrace nového účtu:**
 
@@ -424,7 +440,8 @@ V `.npmrc` souboru mám nastaveno:
 - **XSS ochrana**: React automaticky escapuje vstupy
 - **TypeScript**: Pomáhá předcházet chybám už při psaní kódu
 - **Hashování hesel**: BCrypt cost-10 přes Spring `BCryptPasswordEncoder`
-- **Autentizace**: stateless JWT (HS256, 24h platnost), filter ve Spring Security
+- **Autentizace**: stateless JWT (HS256, 24h platnost), filter ve Spring Security. Podpisový secret se čte z env proměnné `JWT_SECRET` s jasně označeným dev placeholderem jako fallbackem — produkční nasazení musí proměnnou nastavit.
+- **Konfigurace tajemství**: Postgres přístupové údaje (`DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`) a JWT secret (`JWT_SECRET`) se čtou výhradně z env proměnných; YAML drží jen dev defaulty pro běh na lokále, do žádného produkčního prostředí by tyto hodnoty nikdy neměly jít.
 - **Autorizace na úrovni metod**: `@EnableMethodSecurity` + `@PreAuthorize("hasRole('ADMIN')")` na `AdminController`. Stejné pravidlo je dublováno i na URL filtru (`/api/admin/**` → `hasRole("ADMIN")`) — defence in depth.
 - **CORS**: explicitně povolený jen pro Vite dev server (`http://localhost:5173`)
 - **Globální exception handler**: nikdy neunikne stack trace klientovi, jen `ErrorResponse`. Catch-all handler loguje `ERROR` a vrací 500 s neutrálním textem, takže interní detail nikdy nedoputuje k uživateli.
@@ -475,9 +492,9 @@ Konfigurace `OpenApiConfig` přidává JWT bearer security scheme — v UI lze p
 
 ### 11.1 Provozní předpoklady
 
-- Backend potřebuje běžící PostgreSQL na `localhost:5432` s databází `bezcisobe` (parametry v `application.yml`).
+- Backend potřebuje běžící PostgreSQL na `localhost:5432` s databází `bezcisobe` (defaultní parametry v `application.yml`, přepsatelné přes env proměnné `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`).
 - Frontend očekává backend na `http://localhost:8080`. Adresa je hard-coded v `apiService.ts` – pro produkci by byla v env proměnné.
-- JWT secret v `application.yml` je commitnutý na ukázku – v produkci by patřil do tajného úložiště (Vault, Azure Key Vault, env).
+- JWT secret se čte z `JWT_SECRET` env proměnné; YAML drží jen dev placeholder, takže aplikace funguje out-of-the-box, ale v produkci je nutné secret nastavit (Vault, Azure Key Vault, …).
 
 ### 11.2 Chybějící funkce
 
