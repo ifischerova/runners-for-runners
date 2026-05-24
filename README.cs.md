@@ -88,9 +88,11 @@ CREATE DATABASE bezcisobe;
 ```
 
 Flyway sám vytvoří schéma a naseeduje číselníky, závody, uživatele a
-ukázkové jízdy přes migrace `V1`–`V7` při prvním spuštění (V5/V6
-naplní kalendář 2026 scraperem ze [ceskybeh.cz/terminovka](https://ceskybeh.cz/terminovka/),
-V7 opraví chybu v destinacích jízd, kterou nasypaly předchozí seedy).
+ukázkové jízdy přes migrace `V1`–`V9` při prvním spuštění (V5/V6 naplní
+kalendář 2026 scraperem ze [ceskybeh.cz/terminovka](https://ceskybeh.cz/terminovka/),
+V7 opraví chybu v destinacích jízd, V8 odstraní admina ze sdílených
+jízd, V9 přidá 10 mezinárodních uživatelů s jízdami, aby seznam jízd
+viditelně míchal české i zahraniční běžce).
 
 ### Spuštění
 
@@ -188,6 +190,22 @@ Další účty (V5, seedované spolu s 800+ scrapnutými závody pro rok 2026):
 | `lucie.vesela`          | `lucie2026`   | Liberec           |
 | `david.horak`           | `horak2026`   | Hradec Králové    |
 | `eva.benesova`          | `benesova26`  | České Budějovice  |
+
+Mezinárodní účty (V9, přidané proto, aby seznam jízd viditelně míchal
+české a zahraniční běžce; každý z nich vlastní alespoň jednu jízdu):
+
+| Uživatelské jméno    | Heslo         | Město     |
+| -------------------- | ------------- | --------- |
+| `anna.mueller`       | `mueller2026` | Berlín    |
+| `carlos.garcia`      | `garcia2026`  | Madrid    |
+| `marco.rossi`        | `rossi2026`   | Milán     |
+| `philippe.moreau`    | `moreau2026`  | Lyon      |
+| `liam.oconnor`       | `oconnor26`   | Dublin    |
+| `sophie.schneider`   | `sophie2026`  | Vídeň     |
+| `agnieszka.nowak`    | `nowak2026`   | Varšava   |
+| `erik.andersson`     | `erik2026`    | Stockholm |
+| `maria.silva`        | `silva2026`   | Lisabon   |
+| `mark.johnson`       | `mark2026`    | Londýn    |
 
 Seedované BCrypt hashe byly vygenerovány znovu proti
 `BCryptPasswordEncoder` a samy se ověřují — `mvn test

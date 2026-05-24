@@ -31,7 +31,7 @@ current version has a real backend with a database and JWT authentication.
 - **Framework**: Spring Boot 3.2 (Java 17)
 - **Security**: Spring Security + stateless JWT (jjwt 0.12.5), method security (`@PreAuthorize`)
 - **ORM**: Spring Data JPA + Hibernate
-- **DB migrations**: Flyway (V1–V7)
+- **DB migrations**: Flyway (V1–V9)
 - **Database**: PostgreSQL 14+ (prod/dev), H2 in-memory (tests)
 - **Validation**: `spring-boot-starter-validation` (Bean Validation) + custom `@ValidRideRequest` cross-field constraint
 - **API docs**: springdoc-openapi 2.3 (Swagger UI at `/swagger-ui.html`)
@@ -75,7 +75,7 @@ current version has a real backend with a database and JWT authentication.
         └── resources/
             ├── application.yml          # Postgres, Flyway, JWT, Actuator, Swagger, logging
             ├── application-dev.yml      # Dev profile
-            └── db/migration/V1..V7__*.sql
+            └── db/migration/V1..V9__*.sql
 ```
 
 ### 2.2 Pages
@@ -134,6 +134,8 @@ migrations:
 - `V5__seed_more_races_users_rides.sql` – 851 races for the rest of the 2026 season (scraped from [ceskybeh.cz/terminovka](https://ceskybeh.cz/terminovka/)), 8 more accounts, and 25 sample rides; race ids start at 100 so the 1..99 range stays free for hand-curated entries
 - `V6__seed_2027_races_and_remaining_rides.sql` – 10 races for 2027 under a new `race_calendars` row (`is_active=FALSE`), plus 834 rides so every 2026 race has at least one
 - `V7__fix_ride_destinations.sql` – a single `UPDATE` that sets `destination_to` on OFFER rides to `races.place` (the V5/V6 generators initially picked a random destination, which produced nonsensical pairs like "Plzeň → Zlín" for a race held in Praha)
+- `V8__remove_admin_from_rides.sql` – takes the admin service account off carpool rides: reassigns admin-owned rides to a deterministic non-admin user (skipping any candidate who's already a passenger so driver != passenger) and strips admin from `ride_passengers` (with matching `occupied_seats` decrement)
+- `V9__seed_international_users_and_rides.sql` – 10 international users (Anna Müller, Carlos García, Marco Rossi, …) plus 18 sample rides so the ride list visibly mixes Czech and non-Czech drivers. BCrypt hashes are pinned in `BCryptHashValidationTest` like all earlier batches
 
 ## 4. Working with data
 
@@ -357,6 +359,7 @@ I used several modern design techniques in the app:
 - **Glassmorphism**: translucent cards with a blur effect (visible in the Header)
 - **Gradient text**: colour transitions in headings (`bg-clip-text text-transparent` with the `text-Nxl/tight` slash syntax and `pb-[5px]` so j/p/g descenders don't get clipped at the bottom of the gradient region)
 - **Wireframe icons**: the `lucide-react` library with stroke-width 1.5; icons inside colored gradient badges render white, icons on light cards use `text-primary-600` / `text-accent-600`
+- **Bilingual UI (cs / en)**: a thin custom i18n layer (`src/contexts/LanguageContext.tsx` + `src/i18n/translations.ts`) — no extra dependency. Every user-visible string is keyed in both languages; the active locale is persisted in `localStorage` (`bezci_locale`) and auto-detected from `navigator.language` on the first visit (falls back to Czech). A flag switcher (`src/components/ui/LanguageSwitcher.tsx`) in the header lets the user flip languages on every page; the active flag is fully opaque, the inactive one is dimmed at 50%. Race names and places stay in Czech because they're real race data, not UI copy
 - **Animations**: fade-in, slide-up, bounce effects
 - **Rounded design**: rounded corners everywhere
 - **Shadow effects**: multiple shadow levels for depth

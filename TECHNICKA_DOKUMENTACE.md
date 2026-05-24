@@ -27,7 +27,7 @@ Běžci sobě je moderní full-stack webová aplikace pro sdílení dopravy mezi
 - **Framework**: Spring Boot 3.2 (Java 17)
 - **Bezpečnost**: Spring Security + stateless JWT (jjwt 0.12.5), method security (`@PreAuthorize`)
 - **ORM**: Spring Data JPA + Hibernate
-- **Migrace DB**: Flyway (V1–V7)
+- **Migrace DB**: Flyway (V1–V9)
 - **Databáze**: PostgreSQL 14+ (produkce/dev), H2 in-memory (testy)
 - **Validace**: `spring-boot-starter-validation` (Bean Validation) + vlastní `@ValidRideRequest` cross-field constraint
 - **API dokumentace**: springdoc-openapi 2.3 (Swagger UI na `/swagger-ui.html`)
@@ -71,7 +71,7 @@ Běžci sobě je moderní full-stack webová aplikace pro sdílení dopravy mezi
         └── resources/
             ├── application.yml          # Postgres, Flyway, JWT, Actuator, Swagger, logging
             ├── application-dev.yml      # Dev profil
-            └── db/migration/V1..V7__*.sql
+            └── db/migration/V1..V9__*.sql
 ```
 
 ### 2.2 Popis jednotlivých stránek
@@ -125,6 +125,8 @@ Schéma databáze a počáteční data spravuje Flyway sedmi migracemi:
 - `V5__seed_more_races_users_rides.sql` – 851 závodů pro zbytek sezóny 2026 (data scrapnutá z [ceskybeh.cz/terminovka](https://ceskybeh.cz/terminovka/)), dalších 8 účtů a 25 ukázkových jízd; IDs závodů startují na 100, aby zůstal rozsah 1..99 pro ručně přidávaná data
 - `V6__seed_2027_races_and_remaining_rides.sql` – 10 závodů pro rok 2027 pod novým `race_calendars` záznamem (`is_active=FALSE`) a 834 jízd, takže každý závod v 2026 má alespoň jednu jízdu
 - `V7__fix_ride_destinations.sql` – jediný `UPDATE` opravující `destination_to` u OFFER jízd na hodnotu `races.place` (generátory v V5/V6 vybíraly cíl náhodně, čímž vznikaly nesmyslné kombinace typu „Plzeň → Zlín“ pro závod v Praze)
+- `V8__remove_admin_from_rides.sql` – odstraní servisní účet admin ze sdílených jízd: admin-vlastněné jízdy se přepíšou na deterministicky vybraného běžného uživatele (s přeskočením kandidáta, který už je pasažérem té jízdy, aby řidič ≠ pasažér), admin se vymaže z `ride_passengers` a odpovídajícím způsobem se sníží `occupied_seats`
+- `V9__seed_international_users_and_rides.sql` – 10 mezinárodních uživatelů (Anna Müller, Carlos García, Marco Rossi, …) a 18 ukázkových jízd, aby se v seznamu jízd viditelně míchali čeští i zahraniční řidiči. BCrypt hashe jsou zafixovány v `BCryptHashValidationTest` stejně jako u dřívějších dávek
 
 ## 4. Práce s daty
 
@@ -333,6 +335,7 @@ V aplikaci jsem použila několik moderních design technik:
 - **Glassmorphism**: průhledné karty s blur efektem (vidět v Header)
 - **Gradient texty**: barevné přechody v nadpisech (`bg-clip-text text-transparent` se slash syntax `text-Nxl/tight` a `pb-[5px]`, aby descendery na j/p/g neřízly přes spodní hranici gradientu)
 - **Wireframe ikony**: knihovna `lucide-react` se stroke-width 1.5; ikony v barevných gradient badge se renderují bíle, ikony na světlých kartách v `text-primary-600` / `text-accent-600`
+- **Dvojjazyčné UI (cs / en)**: tenká vlastní i18n vrstva (`src/contexts/LanguageContext.tsx` + `src/i18n/translations.ts`) — bez další závislosti. Každý uživatelsky viditelný řetězec je zaklíčovaný v obou jazycích; aktivní jazyk se ukládá do `localStorage` (`bezci_locale`) a při první návštěvě se auto-detekuje z `navigator.language` (default čeština). Vlajkový přepínač (`src/components/ui/LanguageSwitcher.tsx`) v hlavičce umožňuje překlápět jazyk na každé stránce; aktivní vlajka je plně viditelná, neaktivní ztlumená na 50 %. Názvy závodů a místa zůstávají v češtině — jsou to reálná data závodů, ne UI text
 - **Animace**: fade-in, slide-up, bounce efekty
 - **Rounded design**: zaoblené rohy všude
 - **Shadow effects**: různé úrovně stínů pro hloubku

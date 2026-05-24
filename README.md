@@ -88,9 +88,11 @@ CREATE DATABASE bezcisobe;
 ```
 
 Flyway creates the schema and seeds reference data, races, users, and sample
-rides automatically on first run via migrations `V1`–`V7` (the V5/V6 seeds
-fill the 2026 calendar from a public race scraper, V7 patches a ride
-destination bug in earlier seed data).
+rides automatically on first run via migrations `V1`–`V9` (V5/V6 fill the
+2026 calendar from a public race scraper, V7 patches a ride-destination
+bug in earlier seed data, V8 removes the admin account from the carpool
+rides, V9 adds 10 international users with rides so the ride list visibly
+mixes Czech and non-Czech runners).
 
 ### Run
 
@@ -188,6 +190,22 @@ V5 additional accounts (seeded alongside the 800+ scraped 2026 races):
 | `lucie.vesela`          | `lucie2026`   | Liberec           |
 | `david.horak`           | `horak2026`   | Hradec Králové    |
 | `eva.benesova`          | `benesova26`  | České Budějovice  |
+
+V9 international accounts (added so the rides list visibly mixes Czech and
+non-Czech runners; each one also owns at least one ride):
+
+| Username             | Password      | City      |
+| -------------------- | ------------- | --------- |
+| `anna.mueller`       | `mueller2026` | Berlin    |
+| `carlos.garcia`      | `garcia2026`  | Madrid    |
+| `marco.rossi`        | `rossi2026`   | Milan     |
+| `philippe.moreau`    | `moreau2026`  | Lyon      |
+| `liam.oconnor`       | `oconnor26`   | Dublin    |
+| `sophie.schneider`   | `sophie2026`  | Vienna    |
+| `agnieszka.nowak`    | `nowak2026`   | Warsaw    |
+| `erik.andersson`     | `erik2026`    | Stockholm |
+| `maria.silva`        | `silva2026`   | Lisbon    |
+| `mark.johnson`       | `mark2026`    | London    |
 
 The seed BCrypt hashes were regenerated against
 `BCryptPasswordEncoder` and self-verified — `mvn test
