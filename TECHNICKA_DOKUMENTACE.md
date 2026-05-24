@@ -1,5 +1,7 @@
 # Běžci sobě - Technická dokumentace
 
+**Česky** | [English](TECHNICAL_DOCUMENTATION.md)
+
 **Semestrální práce pro předmět Tvorba webových aplikací**
 
 ## 1. Přehled projektu

@@ -1,5 +1,7 @@
 # Běžci sobě
 
+[Česky](README.cs.md) | **English**
+
 Full-stack carpooling platform for runners going to Czech running races. The
 project pairs a React + TypeScript frontend with a Spring Boot + PostgreSQL
 backend that demonstrates layered architecture, JWT authentication,
@@ -192,9 +194,12 @@ its password.
 
 ## Documentation
 
-- `TECHNICKA_DOKUMENTACE.md` – Czech-language technical write-up of the
-  full-stack architecture, state management, validation rules, logging,
-  monitoring, design system, testing strategy, and security notes.
+- [`TECHNICAL_DOCUMENTATION.md`](TECHNICAL_DOCUMENTATION.md) – technical
+  write-up of the full-stack architecture, state management, validation
+  rules, logging, monitoring, design system, testing strategy, and
+  security notes.
+- [`TECHNICKA_DOKUMENTACE.md`](TECHNICKA_DOKUMENTACE.md) – the Czech
+  version of the same document.
 
 ## Security notes
 
