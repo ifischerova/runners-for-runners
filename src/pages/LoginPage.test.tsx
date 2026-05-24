@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '../contexts/AuthContext';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { renderWithProviders } from '../test/renderWithProviders';
 import { LoginPage } from '../pages/LoginPage';
 
 // Mock useNavigate
@@ -32,13 +31,7 @@ describe('LoginPage Component', () => {
   });
 
   const renderLoginPage = () => {
-    return render(
-      <BrowserRouter>
-        <AuthProvider>
-          <LoginPage />
-        </AuthProvider>
-      </BrowserRouter>
-    );
+    return renderWithProviders(<LoginPage />, { withAuth: true });
   };
 
   it('should render login form', () => {

@@ -1,6 +1,8 @@
 import { Heart } from 'lucide-react';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export const Footer = () => {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -9,12 +11,12 @@ export const Footer = () => {
         {/* Bottom Bar */}
         <div className="text-center">
           <p className="text-sm text-dark-600 inline-flex items-center gap-1">
-            {currentYear} © Made with
+            {currentYear} © {t('common.footer.madeWith')}
             <Heart size={14} strokeWidth={1.5} className="text-red-500 animate-pulse" />
             by <span className="font-semibold text-primary-600">Iva Fischerová</span>
           </p>
           <p className="text-xs text-dark-500 mt-2">
-            Běžíme s tebou na každém kroku
+            {t('common.footer.tagline')}
           </p>
         </div>
       </div>

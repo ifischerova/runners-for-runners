@@ -2,6 +2,7 @@ import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Footprints } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from '../contexts/LanguageContext';
 
 export const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -10,6 +11,7 @@ export const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -18,13 +20,13 @@ export const LoginPage = () => {
 
     // Client-side validation
     if (!username || !password) {
-      setError('Vyplňte prosím všechna pole');
+      setError(t('auth.login.error.allRequired'));
       setIsLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setError('Heslo musí mít alespoň 6 znaků');
+      setError(t('auth.login.error.passwordShort'));
       setIsLoading(false);
       return;
     }
@@ -33,7 +35,7 @@ export const LoginPage = () => {
       await login({ username, password });
       navigate('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Přihlášení selhalo');
+      setError(err instanceof Error ? err.message : t('auth.login.error.failed'));
     } finally {
       setIsLoading(false);
     }
@@ -46,9 +48,9 @@ export const LoginPage = () => {
           <Footprints size={32} strokeWidth={1.5} className="text-white" />
         </div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-3 leading-tight pb-[5px]">
-          Vítej zpět, běžče!
+          {t('auth.login.title')}
         </h1>
-        <p className="text-dark-600">Přihlas se a pokračuj v plánování svých cest na závody</p>
+        <p className="text-dark-600">{t('auth.login.subtitle')}</p>
       </div>
 
       <div className="glass-card p-8 animate-scale-in">
@@ -61,7 +63,7 @@ export const LoginPage = () => {
 
           <div>
             <label htmlFor="username" className="form-label-custom">
-              Uživatelské jméno
+              {t('auth.login.username.label')}
             </label>
             <input
               type="text"
@@ -71,13 +73,13 @@ export const LoginPage = () => {
               className="form-input-custom"
               required
               autoComplete="username"
-              placeholder="Zadej své uživatelské jméno"
+              placeholder={t('auth.login.username.placeholder')}
             />
           </div>
 
           <div>
             <label htmlFor="password" className="form-label-custom">
-              Heslo
+              {t('auth.login.password.label')}
             </label>
             <input
               type="password"
@@ -88,7 +90,7 @@ export const LoginPage = () => {
               required
               autoComplete="current-password"
               minLength={6}
-              placeholder="Zadej své heslo"
+              placeholder={t('auth.login.password.placeholder')}
             />
           </div>
 
@@ -97,20 +99,20 @@ export const LoginPage = () => {
             disabled={isLoading}
             className="w-full btn-primary-custom disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Přihlašuji...' : 'Přihlásit se'}
+            {isLoading ? t('auth.login.submitting') : t('auth.login.submit')}
           </button>
 
           <div className="border-t border-gray-200 pt-4 space-y-3">
             <p className="text-center text-sm">
               <Link to="/forgotten-password" className="text-primary-600 hover:text-primary-700 font-medium">
-                Zapomněl/a jsem heslo
+                {t('auth.login.forgotPassword')}
               </Link>
             </p>
 
             <p className="text-center text-sm text-dark-600">
-              Ještě nemáte účet?{' '}
+              {t('auth.login.noAccount')}{' '}
               <Link to="/registration" className="text-accent-600 hover:text-accent-700 font-bold">
-                Zaregistrujte se zdarma →
+                {t('auth.login.registerLink')}
               </Link>
             </p>
           </div>

@@ -4,6 +4,7 @@ import { Race, Ride, RideType } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Select } from '../components/ui/Select';
+import { useTranslation } from '../contexts/LanguageContext';
 
 export const RacesPage = () => {
   const [races, setRaces] = useState<Race[]>([]);
@@ -12,6 +13,7 @@ export const RacesPage = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const { t, formatDate } = useTranslation();
 
   const [newRide, setNewRide] = useState({
     type: RideType.OFFER,
@@ -51,13 +53,13 @@ export const RacesPage = () => {
     e.preventDefault();
 
     if (!isAuthenticated || !user) {
-      alert('Pro vytvoření jízdy se musíte přihlásit');
+      alert(t('races.alert.loginToCreate'));
       navigate('/login');
       return;
     }
 
     if (!selectedRace) {
-      alert('Vyberte prosím závod');
+      alert(t('races.alert.pickRaceFirst'));
       return;
     }
 
@@ -84,14 +86,14 @@ export const RacesPage = () => {
         notes: '',
       });
       setShowCreateForm(false);
-      alert('Jízda byla úspěšně vytvořena!');
+      alert(t('races.alert.createSuccess'));
     } catch {
-      alert('Chyba při vytváření jízdy');
+      alert(t('races.alert.createError'));
     }
   };
 
   const handleDeleteRide = async (rideId: string) => {
-    if (!window.confirm('Opravdu chcete smazat tuto jízdu?')) {
+    if (!window.confirm(t('races.alert.deleteConfirm'))) {
       return;
     }
 
@@ -99,15 +101,15 @@ export const RacesPage = () => {
       await apiService.deleteRide(rideId);
       const loadedRides = await apiService.getRidesByRace(selectedRace);
       setRides(loadedRides);
-      alert('Jízda byla úspěšně smazána');
+      alert(t('races.alert.deleteSuccess'));
     } catch {
-      alert('Chyba při mazání jízdy');
+      alert(t('races.alert.deleteError'));
     }
   };
 
   const handleAcceptRide = async (rideId: string) => {
     if (!isAuthenticated || !user) {
-      alert('Pro přijetí nabídky se musíte přihlásit');
+      alert(t('races.alert.loginToAccept'));
       navigate('/login');
       return;
     }
@@ -116,9 +118,9 @@ export const RacesPage = () => {
       await apiService.acceptRide(rideId);
       const loadedRides = await apiService.getRidesByRace(selectedRace);
       setRides(loadedRides);
-      alert('Úspěšně jste přijali nabídku jízdy!');
+      alert(t('races.alert.acceptSuccess'));
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Chyba při přijímání jízdy');
+      alert(error instanceof Error ? error.message : t('races.alert.acceptError'));
     }
   };
 
@@ -127,7 +129,7 @@ export const RacesPage = () => {
       return;
     }
 
-    if (!window.confirm('Opravdu chcete zrušit účast na této jízdě?')) {
+    if (!window.confirm(t('races.alert.cancelConfirm'))) {
       return;
     }
 
@@ -135,9 +137,9 @@ export const RacesPage = () => {
       await apiService.cancelRideAcceptance(rideId);
       const loadedRides = await apiService.getRidesByRace(selectedRace);
       setRides(loadedRides);
-      alert('Účast na jízdě byla zrušena');
+      alert(t('races.alert.cancelSuccess'));
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Chyba při rušení účasti');
+      alert(error instanceof Error ? error.message : t('races.alert.cancelError'));
     }
   };
 
@@ -148,28 +150,28 @@ export const RacesPage = () => {
       {/* Hero Section */}
       <div className="text-center mb-10">
         <h1 className="text-4xl md:text-5xl/tight font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-3 leading-tight pb-[5px]">
-          Běhej dál - dojeď rychleji!
+          {t('races.hero.title')}
         </h1>
         <p className="text-lg text-dark-600">
-          Najdi spolujízdu na svůj oblíbený závod a šetři přírodu i peněženku
+          {t('races.hero.subtitle')}
         </p>
       </div>
 
       {/* Race Selector Card */}
       <div className="glass-card p-6 mb-8 max-w-3xl mx-auto">
         <label className="block text-lg font-bold text-dark-800 mb-3">
-          Zvol termín závodu
+          {t('races.picker.label')}
         </label>
         <Select
           value={selectedRace}
           onChange={handleRaceSelect}
           searchable
-          searchPlaceholder="Hledat závod podle názvu nebo místa..."
-          placeholder="Vyberte závod"
-          emptyLabel="Žádný závod neodpovídá hledání"
+          searchPlaceholder={t('races.picker.search')}
+          placeholder={t('races.picker.placeholder')}
+          emptyLabel={t('races.picker.empty')}
           options={races.map((race) => ({
             value: race.id,
-            label: `${new Date(race.date).toLocaleDateString('cs-CZ')} – ${race.name} (${race.place})`,
+            label: `${formatDate(race.date)} – ${race.name} (${race.place})`,
           }))}
         />
       </div>
@@ -190,26 +192,21 @@ export const RacesPage = () => {
 
           <div className="grid md:grid-cols-3 gap-4 mt-4">
             <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-4">
-              <div className="text-sm text-primary-700 font-semibold mb-1">Datum</div>
+              <div className="text-sm text-primary-700 font-semibold mb-1">{t('races.detail.date')}</div>
               <div className="text-lg font-bold text-primary-900">
-                {new Date(selectedRaceData.date).toLocaleDateString('cs-CZ', {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric'
-                })}
+                {formatDate(selectedRaceData.date)}
               </div>
             </div>
 
             <div className="bg-gradient-to-br from-accent-50 to-accent-100 rounded-xl p-4">
-              <div className="text-sm text-accent-700 font-semibold mb-1">Start závodu</div>
+              <div className="text-sm text-accent-700 font-semibold mb-1">{t('races.detail.startTime')}</div>
               <div className="text-lg font-bold text-accent-900">
                 {selectedRaceData.startTime}
               </div>
             </div>
 
             <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-4">
-              <div className="text-sm text-yellow-700 font-semibold mb-1">Délka trati</div>
+              <div className="text-sm text-yellow-700 font-semibold mb-1">{t('races.detail.distance')}</div>
               <div className="text-lg font-bold text-yellow-900">
                 {selectedRaceData.trackLength.name}
               </div>
@@ -224,8 +221,7 @@ export const RacesPage = () => {
                 rel="noopener noreferrer"
                 className="inline-flex items-center text-primary-600 hover:text-primary-700 font-semibold"
               >
-                Navštívit web závodu
-                <span className="ml-1">→</span>
+                {t('races.detail.web')}
               </a>
             </div>
           )}
@@ -237,7 +233,7 @@ export const RacesPage = () => {
         <div className="card-modern p-6 md:p-8 mb-8 max-w-5xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <h3 className="text-2xl font-bold text-dark-800">
-              Dostupné jízdy
+              {t('races.rides.title')}
             </h3>
             {isAuthenticated && (
               <button
@@ -248,7 +244,7 @@ export const RacesPage = () => {
                     : 'btn-accent-custom'
                 } whitespace-nowrap`}
               >
-                {showCreateForm ? 'Zrušit' : '+ Přidat jízdu'}
+                {showCreateForm ? t('common.cancel') : t('races.rides.addBtn')}
               </button>
             )}
           </div>
@@ -256,28 +252,28 @@ export const RacesPage = () => {
           {/* Create ride form */}
           {showCreateForm && (
             <form onSubmit={handleCreateRide} className="glass-card p-6 mb-6 animate-slide-down">
-              <h4 className="text-xl font-bold text-dark-800 mb-4">Vytvořit novou jízdu</h4>
+              <h4 className="text-xl font-bold text-dark-800 mb-4">{t('races.form.title')}</h4>
               <div className="space-y-4">
                 <div>
-                  <label className="form-label-custom">Typ jízdy</label>
+                  <label className="form-label-custom">{t('races.form.type')}</label>
                   <Select
                     value={newRide.type}
                     onChange={(v) => setNewRide({ ...newRide, type: v as RideType })}
                     options={[
-                      { value: RideType.OFFER, label: 'Nabídka (nabízím místo)' },
-                      { value: RideType.REQUEST, label: 'Poptávka (hledám jízdu)' },
+                      { value: RideType.OFFER, label: t('races.form.type.offer') },
+                      { value: RideType.REQUEST, label: t('races.form.type.request') },
                     ]}
                   />
                 </div>
 
                 <div>
-                  <label className="form-label-custom">Odkud jedeš? *</label>
+                  <label className="form-label-custom">{t('races.form.from.label')}</label>
                   <input
                     type="text"
                     value={newRide.from}
                     onChange={(e) => setNewRide({ ...newRide, from: e.target.value })}
                     className="form-input-custom"
-                    placeholder="Např. Praha"
+                    placeholder={t('races.form.from.placeholder')}
                     required
                   />
                 </div>
@@ -285,31 +281,31 @@ export const RacesPage = () => {
                 {newRide.type === RideType.OFFER && (
                   <>
                     <div>
-                      <label className="form-label-custom">Kam jedeš zpět? (volitelné)</label>
+                      <label className="form-label-custom">{t('races.form.to.label')}</label>
                       <input
                         type="text"
                         value={newRide.to}
                         onChange={(e) => setNewRide({ ...newRide, to: e.target.value })}
                         className="form-input-custom"
-                        placeholder="Např. Brno"
+                        placeholder={t('races.form.to.placeholder')}
                       />
                     </div>
 
                     <div>
-                      <label className="form-label-custom">Typ auta</label>
+                      <label className="form-label-custom">{t('races.form.car.label')}</label>
                       <input
                         type="text"
                         value={newRide.car}
                         onChange={(e) => setNewRide({ ...newRide, car: e.target.value })}
                         className="form-input-custom"
-                        placeholder="Např. Škoda Octavia"
+                        placeholder={t('races.form.car.placeholder')}
                       />
                     </div>
                   </>
                 )}
 
                 <div>
-                  <label className="form-label-custom">Počet volných míst</label>
+                  <label className="form-label-custom">{t('races.form.seats.label')}</label>
                   <div className="grid grid-cols-4 gap-2">
                     {[1, 2, 3, 4].map(n => (
                       <button
@@ -329,13 +325,13 @@ export const RacesPage = () => {
                 </div>
 
                 <div>
-                  <label className="form-label-custom">Poznámka (volitelná)</label>
+                  <label className="form-label-custom">{t('races.form.notes.label')}</label>
                   <textarea
                     value={newRide.notes}
                     onChange={(e) => setNewRide({ ...newRide, notes: e.target.value })}
                     className="form-input-custom"
                     rows={3}
-                    placeholder="Přidej další informace, např. čas odjezdu, místo srazu..."
+                    placeholder={t('races.form.notes.placeholder')}
                   />
                 </div>
 
@@ -343,7 +339,7 @@ export const RacesPage = () => {
                   type="submit"
                   className="btn-primary-custom w-full"
                 >
-                  Vytvořit jízdu
+                  {t('races.form.submit')}
                 </button>
               </div>
             </form>
@@ -367,10 +363,10 @@ export const RacesPage = () => {
                         ? 'bg-accent-100 text-accent-700'
                         : 'bg-primary-100 text-primary-700'
                     }`}>
-                      {ride.type === RideType.OFFER ? 'Nabídka' : 'Poptávka'}
+                      {ride.type === RideType.OFFER ? t('races.card.type.offer') : t('races.card.type.request')}
                     </span>
                     <div className="text-right">
-                      <div className="text-sm text-dark-600">Volná místa</div>
+                      <div className="text-sm text-dark-600">{t('races.card.seats')}</div>
                       <div className="text-xl font-bold text-dark-800">
                         {ride.availableSeats - ride.occupiedSeats}/{ride.availableSeats}
                       </div>
@@ -379,12 +375,12 @@ export const RacesPage = () => {
 
                   <div className="space-y-2 mb-3">
                     <div className="flex items-center text-dark-700">
-                      <span className="font-semibold">Z:</span>
+                      <span className="font-semibold">{t('races.card.from')}</span>
                       <span className="ml-2">{ride.from}</span>
                     </div>
                     {ride.to && (
                       <div className="flex items-center text-dark-700">
-                        <span className="font-semibold">Do:</span>
+                        <span className="font-semibold">{t('races.card.to')}</span>
                         <span className="ml-2">{ride.to}</span>
                       </div>
                     )}
@@ -403,7 +399,7 @@ export const RacesPage = () => {
 
                   <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                     <div className="text-sm text-dark-600">
-                      Uživatel: <span className="font-semibold">
+                      {t('races.card.user')} <span className="font-semibold">
                         {ride.userFirstName && ride.userLastName
                           ? `${ride.userFirstName} ${ride.userLastName}`
                           : ride.userUsername}
@@ -415,7 +411,7 @@ export const RacesPage = () => {
                           onClick={() => handleDeleteRide(ride.id)}
                           className="text-sm font-semibold text-red-600 hover:text-red-700 px-3 py-1 rounded-lg hover:bg-red-50 transition-colors"
                         >
-                          Smazat
+                          {t('common.delete')}
                         </button>
                       )}
                       {isAuthenticated && ride.userId !== user?.id && ride.type === RideType.OFFER && (
@@ -425,17 +421,17 @@ export const RacesPage = () => {
                               onClick={() => handleCancelAcceptance(ride.id)}
                               className="text-sm font-semibold text-yellow-600 hover:text-yellow-700 px-3 py-1 rounded-lg hover:bg-yellow-50 transition-colors"
                             >
-                              Zrušit účast
+                              {t('races.card.cancelAcceptance')}
                             </button>
                           ) : ride.availableSeats > ride.occupiedSeats ? (
                             <button
                               onClick={() => handleAcceptRide(ride.id)}
                               className="text-sm font-semibold text-accent-600 hover:text-accent-700 px-3 py-1 rounded-lg hover:bg-accent-50 transition-colors"
                             >
-                              Přijmout nabídku
+                              {t('races.card.accept')}
                             </button>
                           ) : (
-                            <span className="text-sm text-gray-400 italic">Obsazeno</span>
+                            <span className="text-sm text-gray-400 italic">{t('races.card.full')}</span>
                           )}
                         </>
                       )}
@@ -443,7 +439,7 @@ export const RacesPage = () => {
                         <button
                           className="text-sm font-semibold text-primary-600 hover:text-primary-700 px-3 py-1 rounded-lg hover:bg-primary-50 transition-colors"
                         >
-                          Kontaktovat
+                          {t('common.contact')}
                         </button>
                       )}
                     </div>
@@ -453,8 +449,8 @@ export const RacesPage = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-lg text-dark-600 mb-2">Zatím nejsou k dispozici žádné jízdy</p>
-              <p className="text-dark-500">Buď první, kdo nabídne nebo poptá spolujízdu!</p>
+              <p className="text-lg text-dark-600 mb-2">{t('races.rides.empty.title')}</p>
+              <p className="text-dark-500">{t('races.rides.empty.subtitle')}</p>
             </div>
           )}
         </div>
@@ -463,16 +459,16 @@ export const RacesPage = () => {
       {!isAuthenticated && selectedRace && (
         <div className="glass-card p-6 text-center max-w-2xl mx-auto border-2 border-accent-300 animate-scale-in">
           <h3 className="text-xl font-bold text-dark-800 mb-2">
-            Přihlas se a jdi do toho!
+            {t('races.rides.loginPrompt.title')}
           </h3>
           <p className="text-dark-600 mb-6">
-            Pro přidání nebo rezervaci jízdy se musíte <span className="font-bold">přihlásit</span>.
+            {t('races.rides.loginPrompt.before')} <span className="font-bold">{t('races.rides.loginPrompt.linkText')}</span>.
           </p>
           <button
             onClick={() => navigate('/login')}
             className="btn-accent-custom"
           >
-            Přihlásit se →
+            {t('races.rides.loginPrompt.cta')}
           </button>
         </div>
       )}

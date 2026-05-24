@@ -1,6 +1,7 @@
 import { ChevronDown, Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export interface SelectOption {
   value: string;
@@ -22,12 +23,16 @@ export function Select({
   value,
   onChange,
   options,
-  placeholder = '-- Vyberte --',
+  placeholder,
   searchable = false,
-  searchPlaceholder = 'Hledat...',
-  emptyLabel = 'Žádné výsledky',
+  searchPlaceholder,
+  emptyLabel,
   className = '',
 }: SelectProps) {
+  const { t } = useTranslation();
+  const placeholderText = placeholder ?? t('common.select.placeholder');
+  const searchPlaceholderText = searchPlaceholder ?? t('common.select.search');
+  const emptyLabelText = emptyLabel ?? t('common.select.empty');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [panelPos, setPanelPos] = useState({ top: 0, left: 0, width: 0 });
@@ -104,7 +109,7 @@ export function Select({
         <span
           className={`truncate ${selected ? 'text-dark-800' : 'text-dark-400'}`}
         >
-          {selected ? selected.label : placeholder}
+          {selected ? selected.label : placeholderText}
         </span>
         <ChevronDown
           size={20}
@@ -140,7 +145,7 @@ export function Select({
                   autoFocus
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder={searchPlaceholder}
+                  placeholder={searchPlaceholderText}
                   className="flex-1 outline-none text-sm bg-transparent placeholder:text-dark-400"
                 />
               </div>
@@ -148,7 +153,7 @@ export function Select({
             <div className="overflow-y-auto flex-1" role="listbox">
               {filtered.length === 0 ? (
                 <div className="p-4 text-center text-dark-400 text-sm">
-                  {emptyLabel}
+                  {emptyLabelText}
                 </div>
               ) : (
                 filtered.map((option) => (

@@ -2,12 +2,14 @@ import { User } from '@/types';
 import { useState, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, KeyRound } from 'lucide-react';
+import { useTranslation } from '../contexts/LanguageContext';
 
 export const ForgottenPasswordPage = () => {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -16,14 +18,14 @@ export const ForgottenPasswordPage = () => {
 
     // Client-side validation
     if (!email) {
-      setError('Vyplňte prosím email');
+      setError(t('auth.forgot.error.emailRequired'));
       setIsLoading(false);
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError('Zadejte prosím platnou emailovou adresu');
+      setError(t('auth.forgot.error.emailInvalid'));
       setIsLoading(false);
       return;
     }
@@ -31,13 +33,13 @@ export const ForgottenPasswordPage = () => {
     // Simulate API call
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // Check if user exists (mock check using localStorage)
       const users: Array<User> = JSON.parse(localStorage.getItem('users') || '[]');
       const userExists = users.some((user: User) => user.email === email);
-      
+
       if (!userExists) {
-        setError('Uživatel s tímto emailem nebyl nalezen');
+        setError(t('auth.forgot.error.notFound'));
         setIsLoading(false);
         return;
       }
@@ -46,7 +48,7 @@ export const ForgottenPasswordPage = () => {
       // For now, just show success message
       setIsSubmitted(true);
     } catch {
-      setError('Něco se pokazilo. Zkuste to prosím znovu.');
+      setError(t('auth.forgot.error.generic'));
     } finally {
       setIsLoading(false);
     }
@@ -59,19 +61,18 @@ export const ForgottenPasswordPage = () => {
           <div className="inline-block w-16 h-16 bg-gradient-to-br from-accent-500 to-primary-500 rounded-2xl flex items-center justify-center mb-4 mx-auto">
             <Mail size={32} strokeWidth={1.5} className="text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-dark-800 mb-4">Email odeslán!</h2>
+          <h2 className="text-2xl font-bold text-dark-800 mb-4">{t('auth.forgot.success.title')}</h2>
           <p className="text-dark-600 mb-6 leading-relaxed">
-            Pokud je email <span className="font-semibold text-primary-600">{email}</span> registrován v našem systému, 
-            obdržíte instrukce pro obnovení hesla.
+            {t('auth.forgot.success.body.before')} <span className="font-semibold text-primary-600">{email}</span> {t('auth.forgot.success.body.after')}
           </p>
           <p className="text-sm text-dark-500 mb-6">
-            Zkontrolujte prosím svou emailovou schránku (i složku spam).
+            {t('auth.forgot.success.spam')}
           </p>
-          <Link 
-            to="/login" 
+          <Link
+            to="/login"
             className="btn-primary-custom inline-block"
           >
-            Zpět na přihlášení
+            {t('auth.forgot.success.back')}
           </Link>
         </div>
       </div>
@@ -85,9 +86,9 @@ export const ForgottenPasswordPage = () => {
           <KeyRound size={32} strokeWidth={1.5} className="text-white" />
         </div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-3 leading-tight pb-[5px]">
-          Zapomenuté heslo
+          {t('auth.forgot.title')}
         </h1>
-        <p className="text-dark-600">Zadejte svůj email a my vám pošleme instrukce pro obnovení hesla</p>
+        <p className="text-dark-600">{t('auth.forgot.subtitle')}</p>
       </div>
 
       <div className="glass-card p-8 animate-scale-in">
@@ -100,7 +101,7 @@ export const ForgottenPasswordPage = () => {
 
           <div>
             <label htmlFor="email" className="form-label-custom">
-              Email
+              {t('auth.forgot.email.label')}
             </label>
             <input
               type="email"
@@ -110,11 +111,11 @@ export const ForgottenPasswordPage = () => {
               className="form-input-custom"
               required
               autoComplete="email"
-              placeholder="tvuj@email.cz"
+              placeholder={t('auth.register.email.placeholder')}
               disabled={isLoading}
             />
             <p className="text-xs text-dark-500 mt-2">
-              Zadejte email, který jste použili při registraci
+              {t('auth.forgot.email.helper')}
             </p>
           </div>
 
@@ -123,21 +124,21 @@ export const ForgottenPasswordPage = () => {
             disabled={isLoading}
             className="w-full btn-primary-custom disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Odesílám...' : 'Odeslat instrukce'}
+            {isLoading ? t('auth.forgot.submitting') : t('auth.forgot.submit')}
           </button>
 
           <div className="border-t border-gray-200 pt-4 space-y-3">
             <p className="text-center text-sm text-dark-600">
-              Vzpomněli jste si na heslo?{' '}
+              {t('auth.forgot.remembered')}{' '}
               <Link to="/login" className="text-primary-600 hover:text-primary-700 font-bold">
-                Přihlaste se
+                {t('auth.forgot.signInLink')}
               </Link>
             </p>
 
             <p className="text-center text-sm text-dark-600">
-              Ještě nemáte účet?{' '}
+              {t('auth.forgot.noAccount')}{' '}
               <Link to="/registration" className="text-accent-600 hover:text-accent-700 font-bold">
-                Zaregistrujte se
+                {t('auth.forgot.registerLink')}
               </Link>
             </p>
           </div>

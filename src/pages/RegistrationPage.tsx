@@ -2,6 +2,7 @@ import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PartyPopper } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from '../contexts/LanguageContext';
 
 export const RegistrationPage = () => {
   const [formData, setFormData] = useState({
@@ -15,45 +16,46 @@ export const RegistrationPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
     // Username validation
     if (!formData.username) {
-      newErrors.username = 'Uživatelské jméno je povinné';
+      newErrors.username = t('auth.register.error.usernameRequired');
     } else if (formData.username.length < 3) {
-      newErrors.username = 'Uživatelské jméno musí mít alespoň 3 znaky';
+      newErrors.username = t('auth.register.error.usernameShort');
     } else if (!/^[a-zA-Z0-9._-]+$/.test(formData.username)) {
-      newErrors.username = 'Uživatelské jméno může obsahovat pouze písmena, čísla, tečky, pomlčky a podtržítka';
+      newErrors.username = t('auth.register.error.usernameInvalid');
     }
 
     // Email validation
     if (!formData.email) {
-      newErrors.email = 'Email je povinný';
+      newErrors.email = t('auth.register.error.emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Neplatný formát emailu';
+      newErrors.email = t('auth.register.error.emailInvalid');
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = 'Heslo je povinné';
+      newErrors.password = t('auth.register.error.passwordRequired');
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Heslo musí mít alespoň 6 znaků';
+      newErrors.password = t('auth.register.error.passwordShort');
     } else if (!/(?=.*[a-z])(?=.*[A-Z])|(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'Heslo musí obsahovat velké a malé písmeno nebo číslo';
+      newErrors.password = t('auth.register.error.passwordWeak');
     }
 
     // Confirm password validation
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Potvrďte heslo';
+      newErrors.confirmPassword = t('auth.register.error.confirmRequired');
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Hesla se neshodují';
+      newErrors.confirmPassword = t('auth.register.error.passwordsMismatch');
     }
 
     // Terms validation
     if (!formData.acceptedTerms) {
-      newErrors.terms = 'Musíte přijmout podmínky použití';
+      newErrors.terms = t('auth.register.error.termsRequired');
     }
 
     setErrors(newErrors);
@@ -62,7 +64,7 @@ export const RegistrationPage = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -74,10 +76,10 @@ export const RegistrationPage = () => {
         email: formData.email,
         password: formData.password,
       });
-      alert('Registrace byla úspěšná! Nyní se můžete přihlásit.');
+      alert(t('auth.register.successMessage'));
       navigate('/login');
     } catch (err) {
-      setErrors({ general: err instanceof Error ? err.message : 'Registrace selhala' });
+      setErrors({ general: err instanceof Error ? err.message : t('auth.register.error.failed') });
     } finally {
       setIsLoading(false);
     }
@@ -98,9 +100,9 @@ export const RegistrationPage = () => {
           <PartyPopper size={32} strokeWidth={1.5} className="text-white" />
         </div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-accent-600 to-primary-600 bg-clip-text text-transparent mb-3 leading-tight pb-[5px]">
-          Staň se jedním z nás!
+          {t('auth.register.title')}
         </h1>
-        <p className="text-dark-600">Registruj se zdarma a začni sdílet cesty s běžeckou komunitou</p>
+        <p className="text-dark-600">{t('auth.register.subtitle')}</p>
       </div>
 
       <div className="glass-card p-8 animate-scale-in">
@@ -113,7 +115,7 @@ export const RegistrationPage = () => {
 
           <div>
             <label htmlFor="username" className="form-label-custom">
-              Uživatelské jméno *
+              {t('auth.register.username.label')}
             </label>
             <input
               type="text"
@@ -123,14 +125,14 @@ export const RegistrationPage = () => {
               className={`form-input-custom ${errors.username ? 'border-red-500 ring-2 ring-red-200' : ''}`}
               required
               autoComplete="username"
-              placeholder="Např. jirka_runner"
+              placeholder={t('auth.register.username.placeholder')}
             />
             {errors.username && <p className="text-red-600 text-sm mt-1">{errors.username}</p>}
           </div>
 
           <div>
             <label htmlFor="email" className="form-label-custom">
-              Email *
+              {t('auth.register.email.label')}
             </label>
             <input
               type="email"
@@ -140,14 +142,14 @@ export const RegistrationPage = () => {
               className={`form-input-custom ${errors.email ? 'border-red-500 ring-2 ring-red-200' : ''}`}
               required
               autoComplete="email"
-              placeholder="tvuj@email.cz"
+              placeholder={t('auth.register.email.placeholder')}
             />
             {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
           </div>
 
           <div>
             <label htmlFor="password" className="form-label-custom">
-              Heslo *
+              {t('auth.register.password.label')}
             </label>
             <input
               type="password"
@@ -158,14 +160,14 @@ export const RegistrationPage = () => {
               required
               autoComplete="new-password"
               minLength={6}
-              placeholder="Minimálně 6 znaků"
+              placeholder={t('auth.register.password.placeholder')}
             />
             {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
           </div>
 
           <div>
             <label htmlFor="confirmPassword" className="form-label-custom">
-              Potvrzení hesla *
+              {t('auth.register.confirm.label')}
             </label>
             <input
               type="password"
@@ -175,7 +177,7 @@ export const RegistrationPage = () => {
               className={`form-input-custom ${errors.confirmPassword ? 'border-red-500 ring-2 ring-red-200' : ''}`}
               required
               autoComplete="new-password"
-              placeholder="Zadej heslo znovu"
+              placeholder={t('auth.register.confirm.placeholder')}
             />
             {errors.confirmPassword && <p className="text-red-600 text-sm mt-1">{errors.confirmPassword}</p>}
           </div>
@@ -191,9 +193,9 @@ export const RegistrationPage = () => {
                 required
               />
               <label htmlFor="terms" className="text-sm text-dark-700">
-                Souhlasím s{' '}
+                {t('auth.register.terms.before')}{' '}
                 <Link to="/terms" className="text-primary-600 hover:text-primary-700 font-semibold underline">
-                  podmínkami použití
+                  {t('auth.register.terms.link')}
                 </Link>
                 {' '}*
               </label>
@@ -206,14 +208,14 @@ export const RegistrationPage = () => {
             disabled={isLoading}
             className="w-full btn-accent-custom disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Registruji...' : 'Vytvořit účet'}
+            {isLoading ? t('auth.register.submitting') : t('auth.register.submit')}
           </button>
 
           <div className="border-t border-gray-200 pt-4">
             <p className="text-center text-sm text-dark-600">
-              Už máte účet?{' '}
+              {t('auth.register.haveAccount')}{' '}
               <Link to="/login" className="text-primary-600 hover:text-primary-700 font-bold">
-                Přihlaste se →
+                {t('auth.register.signInLink')}
               </Link>
             </p>
           </div>
