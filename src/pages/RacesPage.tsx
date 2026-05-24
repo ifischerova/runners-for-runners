@@ -3,6 +3,7 @@ import { apiService } from '../services/apiService';
 import { Race, Ride, RideType } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { Select } from '../components/ui/Select';
 
 export const RacesPage = () => {
   const [races, setRaces] = useState<Race[]>([]);
@@ -159,18 +160,18 @@ export const RacesPage = () => {
         <label className="block text-lg font-bold text-dark-800 mb-3">
           Zvol termín závodu
         </label>
-        <select
+        <Select
           value={selectedRace}
-          onChange={(e) => handleRaceSelect(e.target.value)}
-          className="form-input-custom text-lg"
-        >
-          <option value="">-- Vyberte závod --</option>
-          {races.map((race) => (
-            <option key={race.id} value={race.id}>
-              {new Date(race.date).toLocaleDateString('cs-CZ')} - {race.name} ({race.place})
-            </option>
-          ))}
-        </select>
+          onChange={handleRaceSelect}
+          searchable
+          searchPlaceholder="Hledat závod podle názvu nebo místa..."
+          placeholder="Vyberte závod"
+          emptyLabel="Žádný závod neodpovídá hledání"
+          options={races.map((race) => ({
+            value: race.id,
+            label: `${new Date(race.date).toLocaleDateString('cs-CZ')} – ${race.name} (${race.place})`,
+          }))}
+        />
       </div>
 
       {/* Selected race details */}
@@ -259,14 +260,14 @@ export const RacesPage = () => {
               <div className="space-y-4">
                 <div>
                   <label className="form-label-custom">Typ jízdy</label>
-                  <select
+                  <Select
                     value={newRide.type}
-                    onChange={(e) => setNewRide({ ...newRide, type: e.target.value as RideType })}
-                    className="form-input-custom"
-                  >
-                    <option value={RideType.OFFER}>Nabídka (nabízím místo)</option>
-                    <option value={RideType.REQUEST}>Poptávka (hledám jízdu)</option>
-                  </select>
+                    onChange={(v) => setNewRide({ ...newRide, type: v as RideType })}
+                    options={[
+                      { value: RideType.OFFER, label: 'Nabídka (nabízím místo)' },
+                      { value: RideType.REQUEST, label: 'Poptávka (hledám jízdu)' },
+                    ]}
+                  />
                 </div>
 
                 <div>
