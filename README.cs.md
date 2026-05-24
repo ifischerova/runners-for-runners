@@ -52,7 +52,13 @@ filter/provider/UserDetails), `validation/` (vlastní pravidlo
   (`/actuator/health`, `/actuator/info`)
 - Strukturované SLF4J logování na úrovních INFO/WARN/ERROR pro business
   události, validační chyby a neočekávané pády
-- 26 unit testů frontendu (Vitest) + 21 E2E scénářů (Playwright)
+- Dvojjazyčné UI (čeština / angličtina) — jedna vlajka v hlavičce, kliknutí
+  přepne na *druhý* jazyk
+- Světlý **i** tmavý motiv — plovoucí Sun/Moon přepínač na každé stránce,
+  při první návštěvě respektuje OS `prefers-color-scheme` a poté si
+  pamatuje uživatelovu volbu; v tmavém režimu se brand překresluje do
+  fialovo-modrých tónů
+- 35 unit testů frontendu (Vitest) + 21 E2E scénářů (Playwright)
 - Backend testy s JUnit 5 + Mockito + Spring MockMvc + Spring Security Test
   (controllery, servisní vrstva, vlastní validátor)
 
@@ -72,7 +78,7 @@ filter/provider/UserDetails), `validation/` (vlastní pravidlo
 npm install
 npm run dev          # http://localhost:5173
 npm run lint
-npm test -- --run    # 26 unit testů, jeden průchod
+npm test -- --run    # 35 unit testů, jeden průchod
 npm run build        # tsc + Vite, ESLint čistý, build čistý
 npm run e2e          # Playwright (Chromium + Firefox)
 ```

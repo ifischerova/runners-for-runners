@@ -52,7 +52,12 @@ constraint), `exception/` (typed exceptions + global handler).
   (`/actuator/health`, `/actuator/info`)
 - Structured SLF4J logging at INFO/WARN/ERROR levels for business events,
   validation failures, and unexpected errors
-- 26 frontend unit tests (Vitest) + 21 E2E scenarios (Playwright)
+- Bilingual UI (Czech / English) — single-flag header switcher that flips
+  to the *other* language with one click
+- Light **and** dark theme — floating Sun/Moon toggle on every page,
+  follows OS `prefers-color-scheme` on the first visit, persists user
+  overrides; in dark mode the brand recolours to violet + sky-blue
+- 35 frontend unit tests (Vitest) + 21 E2E scenarios (Playwright)
 - Backend tests with JUnit 5 + Mockito + Spring MockMvc + Spring Security
   Test (controllers, service layer, custom validator)
 
@@ -72,7 +77,7 @@ constraint), `exception/` (typed exceptions + global handler).
 npm install
 npm run dev          # http://localhost:5173
 npm run lint
-npm test -- --run    # 26 unit tests, single pass
+npm test -- --run    # 35 unit tests, single pass
 npm run build        # tsc + Vite, ESLint clean, build clean
 npm run e2e          # Playwright (Chromium + Firefox)
 ```

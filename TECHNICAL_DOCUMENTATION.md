@@ -47,16 +47,20 @@ current version has a real backend with a database and JWT authentication.
 .
 ├── src/                          # Frontend (React + TS)
 │   ├── components/layout/        # Header, Footer, Layout
+│   ├── components/ui/            # LanguageSwitcher, ThemeSwitcher, Select, Flag
 │   ├── pages/                    # 9 view components
-│   ├── contexts/AuthContext.tsx  # Global login state
+│   ├── contexts/AuthContext.tsx       # Global login state
+│   ├── contexts/LanguageContext.tsx   # i18n: cs/en, localStorage-persisted
+│   ├── contexts/ThemeContext.tsx      # Light / dark theme + OS preference
+│   ├── i18n/translations.ts      # Czech + English string table
 │   ├── services/apiService.ts    # REST client for the backend
 │   ├── types/index.ts            # TypeScript models (User, Race, Ride...)
 │   ├── routes/AppRouter.tsx      # Routing
 │   ├── utils/                    # Validation functions
-│   ├── test/setup.ts             # Vitest setup
+│   ├── test/setup.ts             # Vitest setup + matchMedia polyfill
 │   ├── App.tsx                   # Root component
 │   ├── main.tsx                  # Entry point (ReactDOM.createRoot)
-│   └── index.css                 # Global styles + animations
+│   └── index.css                 # Global styles, animations, theme tokens
 ├── tests/                        # Playwright E2E specs
 └── backend/                      # Backend (Spring Boot)
     ├── pom.xml
@@ -116,7 +120,43 @@ interface AuthContextType {
 - Checks at page load whether anyone is already logged in
 - Automatically redirects to login when someone tries to access a protected page
 
-### 3.2 Backend and persistence
+### 3.2 ThemeContext
+
+A second, presentation-only Context manages the light / dark theme
+(`src/contexts/ThemeContext.tsx`). It follows the same shape as
+`LanguageContext` so the codebase stays consistent:
+
+```typescript
+type Theme = 'light' | 'dark';
+
+interface ThemeContextType {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  toggleTheme: () => void;
+}
+```
+
+**What it does:**
+
+- Resolves the initial theme on first paint: `localStorage['bezci_theme']`
+  wins; otherwise `window.matchMedia('(prefers-color-scheme: dark)')`
+  decides
+- Writes the choice to `localStorage` only after the user explicitly
+  flips the toggle (tracked via a `userOverrodeRef`), so visitors who
+  never touch the switch continue to follow their OS as it changes
+- Toggles the `dark` class on `<html>`, which Tailwind's `darkMode: 'class'`
+  uses to drive every `dark:` utility variant
+- An inline script in `index.html` applies the class synchronously before
+  React hydrates so dark-preferring users don't see a light flash
+
+`ThemeProvider` is mounted in `src/main.tsx` inside `LanguageProvider`
+since theming is purely cosmetic. The toggle component
+(`src/components/ui/ThemeSwitcher.tsx`) is a floating circular button
+fixed to the bottom-right of every page (mounted in `Layout.tsx`); the
+icon shows the *target* state (Moon in light mode → click to go dark,
+Sun in dark mode → click to go light).
+
+### 3.3 Backend and persistence
 
 The app has a real Spring Boot backend that stores data in a PostgreSQL
 database. The frontend uses LocalStorage only for the JWT token
@@ -272,8 +312,10 @@ enum Role {
 - `Footer.test.tsx` – footer component
 - `HomePage.test.tsx` – home page component
 - `LoginPage.test.tsx` – login page with validation
+- `ThemeContext.test.tsx` – OS-preference fallback, localStorage override, toggle, throws outside provider
+- `ThemeSwitcher.test.tsx` – Sun/Moon rendering, click toggles, English aria-labels under `en` locale
 
-**26 unit tests in total across 5 files** (verified with `npm test -- --run`)
+**35 unit tests in total across 7 files** (verified with `npm test -- --run`)
 
 **How to run:**
 
@@ -346,11 +388,36 @@ version of the project imported Bootstrap 5, but it sat unused in
 `package.json` and also broke `line-height` on gradient headings via
 an unlayered `h1 { line-height: 1.2 }` rule, so I removed it).
 
-I used a custom colour palette in a running theme:
+Dark mode is enabled via `darkMode: 'class'` in `tailwind.config.js`,
+so every `dark:` utility activates whenever the `<html>` element carries
+the `dark` class. The brand palette (`primary`, `accent`) is wired
+through CSS variables in `src/index.css`:
 
-**Primary colours (orange)**: `#f97316` – main colour for CTA buttons
-**Accent colours (green)**: `#22c55e` – for eco-friendly elements
-**Dark colours**: for text and backgrounds
+- `:root { --c-primary-500: 249 115 22; ... --c-accent-500: 34 197 94; }`
+  — the **light theme** values (orange + green)
+- `html.dark { --c-primary-500: 139 92 246; ... --c-accent-500: 14 165 233; }`
+  — the **dark theme** values (violet + sky-blue)
+
+Tailwind reads the variables as `rgb(var(--c-primary-500) / <alpha-value>)`,
+which means every `bg-primary-500`, `text-accent-600`, and gradient like
+`from-primary-600 to-accent-600` automatically recolours when `.dark`
+is toggled, without touching a single class name. The custom `surface`
+palette (`surface-700` → `surface-950`) supplies the dark backgrounds
+themselves.
+
+**Light theme**:
+
+- **Primary (orange)**: `#f97316` – CTA buttons, runner brand
+- **Accent (green)**: `#22c55e` – eco-friendly elements
+- **Dark text palette**: warm grays for body copy
+
+**Dark theme** (auto-applied via the `.dark` class):
+
+- **Primary (violet)**: `#8b5cf6` – a cyber-modern recolour of the brand
+- **Accent (sky-blue)**: `#0ea5e9` – cool complement on slate surfaces
+- **Surface**: `#0b1220` → `#334155` – slightly warmer than slate
+- Body background is a slow-drifting gradient: warm orange/yellow in light,
+  deep slate-navy in dark; same 15 s `gradientShift` keyframes drive both
 
 ### 7.2 Modern design elements
 
@@ -359,7 +426,8 @@ I used several modern design techniques in the app:
 - **Glassmorphism**: translucent cards with a blur effect (visible in the Header)
 - **Gradient text**: colour transitions in headings (`bg-clip-text text-transparent` with the `text-Nxl/tight` slash syntax and `pb-[5px]` so j/p/g descenders don't get clipped at the bottom of the gradient region)
 - **Wireframe icons**: the `lucide-react` library with stroke-width 1.5; icons inside colored gradient badges render white, icons on light cards use `text-primary-600` / `text-accent-600`
-- **Bilingual UI (cs / en)**: a thin custom i18n layer (`src/contexts/LanguageContext.tsx` + `src/i18n/translations.ts`) — no extra dependency. Every user-visible string is keyed in both languages; the active locale is persisted in `localStorage` (`bezci_locale`) and auto-detected from `navigator.language` on the first visit (falls back to Czech). A flag switcher (`src/components/ui/LanguageSwitcher.tsx`) in the header lets the user flip languages on every page; the active flag is fully opaque, the inactive one is dimmed at 50%. Race names and places stay in Czech because they're real race data, not UI copy
+- **Bilingual UI (cs / en)**: a thin custom i18n layer (`src/contexts/LanguageContext.tsx` + `src/i18n/translations.ts`) — no extra dependency. Every user-visible string is keyed in both languages; the active locale is persisted in `localStorage` (`bezci_locale`) and auto-detected from `navigator.language` on the first visit (falls back to Czech). The flag switcher (`src/components/ui/LanguageSwitcher.tsx`) in the header renders a *single* flag — the one for the **other** language; clicking it flips the locale. Race names and places stay in Czech because they're real race data, not UI copy
+- **Light / dark theme**: a class-based Tailwind dark mode driven by `src/contexts/ThemeContext.tsx`. First visit follows `prefers-color-scheme`; subsequent visits respect the user's explicit choice (`localStorage['bezci_theme']`). The toggle (`src/components/ui/ThemeSwitcher.tsx`) is a floating Sun/Moon button bottom-right on every page, mounted in `Layout.tsx`; the icon shows the *target* state. An inline script in `index.html` applies the class synchronously before React hydrates so users with dark mode set in the OS don't see a light flash on load. The brand palette swaps from orange/green to violet/sky-blue automatically via CSS variables (see 7.1)
 - **Animations**: fade-in, slide-up, bounce effects
 - **Rounded design**: rounded corners everywhere
 - **Shadow effects**: multiple shadow levels for depth
@@ -627,7 +695,7 @@ The project meets and exceeds the assignment requirements:
 - ✅ Real backend with PostgreSQL persistence
 - ✅ JWT authentication + BCrypt password hashing
 - ✅ Responsive design
-- ✅ Frontend unit tests (Vitest, 26 tests)
+- ✅ Frontend unit tests (Vitest, 35 tests)
 - ✅ Backend tests (JUnit 5 + Mockito + MockMvc)
 - ✅ E2E tests (Playwright, 21 scenarios)
 - ✅ Modern UI/UX
@@ -635,10 +703,10 @@ The project meets and exceeds the assignment requirements:
 
 ### What I learned
 
-- React hooks (useState, useEffect, useContext) and Context API
+- React hooks (useState, useEffect, useContext, useRef) and Context API
 - TypeScript – typing, interfaces, enums
 - React Router – navigation, protected routes, redirects
-- Tailwind CSS – utility-first styling
+- Tailwind CSS – utility-first styling, class-based dark mode, CSS-variable-driven palette swaps
 - REST client over fetch + JWT in headers
 - Spring Boot 3.2 – controllers, services, JPA repositories, DTO mapping
 - Spring Security – stateless JWT pipeline, BCrypt

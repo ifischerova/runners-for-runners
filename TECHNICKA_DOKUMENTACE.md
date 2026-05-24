@@ -43,16 +43,20 @@ Běžci sobě je moderní full-stack webová aplikace pro sdílení dopravy mezi
 .
 ├── src/                          # Frontend (React + TS)
 │   ├── components/layout/        # Header, Footer, Layout
+│   ├── components/ui/            # LanguageSwitcher, ThemeSwitcher, Select, Flag
 │   ├── pages/                    # 9 view komponent
-│   ├── contexts/AuthContext.tsx  # Globální stav přihlášení
+│   ├── contexts/AuthContext.tsx       # Globální stav přihlášení
+│   ├── contexts/LanguageContext.tsx   # i18n: cs/en, perzistence v localStorage
+│   ├── contexts/ThemeContext.tsx      # Světlý / tmavý motiv + OS preference
+│   ├── i18n/translations.ts      # Tabulka českých a anglických řetězců
 │   ├── services/apiService.ts    # REST klient pro backend
 │   ├── types/index.ts            # TypeScript modely (User, Race, Ride...)
 │   ├── routes/AppRouter.tsx      # Routing
 │   ├── utils/                    # Validační funkce
-│   ├── test/setup.ts             # Vitest setup
+│   ├── test/setup.ts             # Vitest setup + matchMedia polyfill
 │   ├── App.tsx                   # Kořenová komponenta
 │   ├── main.tsx                  # Vstupní bod (ReactDOM.createRoot)
-│   └── index.css                 # Globální styly + animace
+│   └── index.css                 # Globální styly, animace, theme tokeny
 ├── tests/                        # Playwright E2E specy
 └── backend/                      # Backend (Spring Boot)
     ├── pom.xml
@@ -112,7 +116,44 @@ interface AuthContextType {
 - Kontroluje při načtení stránky, jestli je někdo přihlášený
 - Automaticky přesměruje na login, když se někdo snaží dostat na chráněnou stránku
 
-### 3.2 Backend a perzistence
+### 3.2 ThemeContext
+
+Druhý, čistě prezentační Context spravuje světlý / tmavý motiv
+(`src/contexts/ThemeContext.tsx`). Má stejný tvar jako `LanguageContext`,
+aby zůstal kód konzistentní:
+
+```typescript
+type Theme = 'light' | 'dark';
+
+interface ThemeContextType {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  toggleTheme: () => void;
+}
+```
+
+**Co to dělá:**
+
+- Při prvním vykreslení rozhodne o motivu: vyhrává `localStorage['bezci_theme']`,
+  jinak rozhodne `window.matchMedia('(prefers-color-scheme: dark)')`
+- Do `localStorage` zapíše až poté, co uživatel přepínač explicitně
+  použije (sleduje to přes `userOverrodeRef`) — návštěvníci, kteří
+  přepínač nikdy nepoužijou, dál sledují nastavení OS i při jeho změně
+- Přepíná třídu `dark` na `<html>`, kterou Tailwind díky
+  `darkMode: 'class'` používá pro všechny `dark:` varianty
+- Inline skript v `index.html` aplikuje třídu synchronně ještě před tím,
+  než se React hydratuje, takže uživatelé v tmavém režimu OS nevidí
+  bliknutí světlého motivu
+
+`ThemeProvider` je v `src/main.tsx` zabalený uvnitř `LanguageProvider`,
+protože theming je čistě kosmetický. Přepínač
+(`src/components/ui/ThemeSwitcher.tsx`) je plovoucí kulaté tlačítko
+připevněné fixně v pravém dolním rohu každé stránky (mountuje se v
+`Layout.tsx`); ikona ukazuje *cílový* stav (Moon ve světlém režimu →
+kliknutí přepne na tmavý, Sun v tmavém režimu → kliknutí přepne na
+světlý).
+
+### 3.3 Backend a perzistence
 
 Aplikace má reálný Spring Boot backend, který data ukládá do PostgreSQL databáze. Frontend používá LocalStorage pouze pro JWT token (`bezci_sobe_token`), aby uživatel zůstal přihlášený i po obnovení stránky. Veškerá doménová data (uživatelé, závody, jízdy, číselníky) jsou v databázi a frontend si je tahá přes REST.
 
@@ -248,8 +289,10 @@ enum Role {
 - `Footer.test.tsx` – footer komponenta
 - `HomePage.test.tsx` – home page komponenta
 - `LoginPage.test.tsx` – login page s validací
+- `ThemeContext.test.tsx` – fallback na OS preferenci, localStorage override, toggle, vyhodí mimo provider
+- `ThemeSwitcher.test.tsx` – render Sun/Moon, klik přepne, anglické aria-labels v `en` lokálu
 
-**Celkem 26 unit testů napříč 5 soubory** (ověřeno přes `npm test -- --run`)
+**Celkem 35 unit testů napříč 7 soubory** (ověřeno přes `npm test -- --run`)
 
 **Jak spustit:**
 
@@ -322,11 +365,36 @@ verze projektu importovala Bootstrap 5, ale ten zůstal v `package.json`
 nevyužitý a navíc rozbíjel `line-height` u gradientových nadpisů přes
 unlayered `h1 { line-height: 1.2 }`, takže jsem ho odstranila).
 
-Použila jsem vlastní barevnou paletu v běžeckém stylu:
+Tmavý režim je zapnutý přes `darkMode: 'class'` v `tailwind.config.js`,
+takže každá `dark:` utility se aktivuje, kdykoli má element `<html>`
+třídu `dark`. Brand paleta (`primary`, `accent`) je v `src/index.css`
+napojená přes CSS proměnné:
 
-**Primary barvy (oranžová)**: `#f97316` – hlavní barva pro CTA tlačítka
-**Accent barvy (zelená)**: `#22c55e` – pro ekologické prvky
-**Dark barvy**: pro texty a pozadí
+- `:root { --c-primary-500: 249 115 22; ... --c-accent-500: 34 197 94; }`
+  — hodnoty pro **světlý motiv** (oranžová + zelená)
+- `html.dark { --c-primary-500: 139 92 246; ... --c-accent-500: 14 165 233; }`
+  — hodnoty pro **tmavý motiv** (fialová + světle modrá)
+
+Tailwind čte proměnné přes `rgb(var(--c-primary-500) / <alpha-value>)`,
+takže každé `bg-primary-500`, `text-accent-600` i gradient typu
+`from-primary-600 to-accent-600` automaticky překreslí, jakmile se
+přepne `.dark` — bez změny jediné CSS třídy. Vlastní `surface` paleta
+(`surface-700` → `surface-950`) pak dodává samotná tmavá pozadí.
+
+**Světlý motiv**:
+
+- **Primary (oranžová)**: `#f97316` – CTA tlačítka, runner brand
+- **Accent (zelená)**: `#22c55e` – ekologické prvky
+- **Tmavá paleta textů**: teplé šedi pro body copy
+
+**Tmavý motiv** (auto-aplikovaný přes třídu `.dark`):
+
+- **Primary (fialová)**: `#8b5cf6` – cyber-modern přebarvení brandu
+- **Accent (světle modrá)**: `#0ea5e9` – chladný kontrast na slate pozadí
+- **Surface**: `#0b1220` → `#334155` – nepatrně teplejší než slate
+- Pozadí body je pomalu driftující gradient: teple oranžovo-žlutý ve
+  světlém, hluboce slate-námořnický v tmavém režimu; oba pohání stejné
+  15s keyframes `gradientShift`
 
 ### 7.2 Moderní design prvky
 
@@ -335,7 +403,8 @@ V aplikaci jsem použila několik moderních design technik:
 - **Glassmorphism**: průhledné karty s blur efektem (vidět v Header)
 - **Gradient texty**: barevné přechody v nadpisech (`bg-clip-text text-transparent` se slash syntax `text-Nxl/tight` a `pb-[5px]`, aby descendery na j/p/g neřízly přes spodní hranici gradientu)
 - **Wireframe ikony**: knihovna `lucide-react` se stroke-width 1.5; ikony v barevných gradient badge se renderují bíle, ikony na světlých kartách v `text-primary-600` / `text-accent-600`
-- **Dvojjazyčné UI (cs / en)**: tenká vlastní i18n vrstva (`src/contexts/LanguageContext.tsx` + `src/i18n/translations.ts`) — bez další závislosti. Každý uživatelsky viditelný řetězec je zaklíčovaný v obou jazycích; aktivní jazyk se ukládá do `localStorage` (`bezci_locale`) a při první návštěvě se auto-detekuje z `navigator.language` (default čeština). Vlajkový přepínač (`src/components/ui/LanguageSwitcher.tsx`) v hlavičce umožňuje překlápět jazyk na každé stránce; aktivní vlajka je plně viditelná, neaktivní ztlumená na 50 %. Názvy závodů a místa zůstávají v češtině — jsou to reálná data závodů, ne UI text
+- **Dvojjazyčné UI (cs / en)**: tenká vlastní i18n vrstva (`src/contexts/LanguageContext.tsx` + `src/i18n/translations.ts`) — bez další závislosti. Každý uživatelsky viditelný řetězec je zaklíčovaný v obou jazycích; aktivní jazyk se ukládá do `localStorage` (`bezci_locale`) a při první návštěvě se auto-detekuje z `navigator.language` (default čeština). Vlajkový přepínač (`src/components/ui/LanguageSwitcher.tsx`) v hlavičce ukazuje *jedinou* vlajku — té **druhé** řeči; kliknutí přepne lokál. Názvy závodů a místa zůstávají v češtině — jsou to reálná data závodů, ne UI text
+- **Světlý / tmavý motiv**: class-based Tailwind dark mode řízený z `src/contexts/ThemeContext.tsx`. První návštěva sleduje `prefers-color-scheme`; další návštěvy respektují uživatelovo vědomé rozhodnutí (`localStorage['bezci_theme']`). Přepínač (`src/components/ui/ThemeSwitcher.tsx`) je plovoucí Sun/Moon tlačítko v pravém dolním rohu na každé stránce, mountovaný v `Layout.tsx`; ikona ukazuje *cílový* stav. Inline skript v `index.html` aplikuje třídu synchronně ještě před hydratací Reactu, aby uživatelé s tmavým režimem v OS neviděli bliknutí světlého motivu. Brand paleta se z oranžovo-zelené překlápí do fialovo-modré automaticky přes CSS proměnné (viz 7.1)
 - **Animace**: fade-in, slide-up, bounce efekty
 - **Rounded design**: zaoblené rohy všude
 - **Shadow effects**: různé úrovně stínů pro hloubku
@@ -589,7 +658,7 @@ Projekt splňuje a překračuje požadavky zadání:
 - ✅ Reálný backend s perzistencí v PostgreSQL
 - ✅ JWT autentizace + BCrypt hashování hesel
 - ✅ Responzivní design
-- ✅ Unit testy frontendu (Vitest, 26 testů)
+- ✅ Unit testy frontendu (Vitest, 35 testů)
 - ✅ Backend testy (JUnit 5 + Mockito + MockMvc)
 - ✅ E2E testy (Playwright, 21 scénářů)
 - ✅ Moderní UI/UX
@@ -597,10 +666,10 @@ Projekt splňuje a překračuje požadavky zadání:
 
 ### Co jsem se naučila
 
-- React hooks (useState, useEffect, useContext) a Context API
+- React hooks (useState, useEffect, useContext, useRef) a Context API
 - TypeScript – typování, interfaces, enums
 - React Router – navigace, chráněné cesty, redirecty
-- Tailwind CSS – utility-first styling
+- Tailwind CSS – utility-first styling, class-based dark mode, výměna palety přes CSS proměnné
 - REST klient nad fetch + JWT v hlavičkách
 - Spring Boot 3.2 – kontrolery, services, JPA repozitáře, DTO mapping
 - Spring Security – stateless JWT pipeline, BCrypt
