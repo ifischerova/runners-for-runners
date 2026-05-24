@@ -1,6 +1,7 @@
 import { User } from '@/types';
 import { useState, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { Mail, KeyRound } from 'lucide-react';
 
 export const ForgottenPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -56,7 +57,7 @@ export const ForgottenPasswordPage = () => {
       <div className="section-container max-w-md mx-auto animate-fade-in">
         <div className="glass-card p-8 text-center animate-scale-in">
           <div className="inline-block w-16 h-16 bg-gradient-to-br from-accent-500 to-primary-500 rounded-2xl flex items-center justify-center mb-4 mx-auto">
-            <span className="text-3xl">✉️</span>
+            <Mail size={32} strokeWidth={1.5} className="text-white" />
           </div>
           <h2 className="text-2xl font-bold text-dark-800 mb-4">Email odeslán!</h2>
           <p className="text-dark-600 mb-6 leading-relaxed">
@@ -81,9 +82,9 @@ export const ForgottenPasswordPage = () => {
     <div className="section-container max-w-md mx-auto animate-fade-in">
       <div className="text-center mb-8">
         <div className="inline-block w-16 h-16 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center mb-4 mx-auto animate-bounce-slow">
-          <span className="text-3xl">🔑</span>
+          <KeyRound size={32} strokeWidth={1.5} className="text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-3 leading-tight">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-3 leading-tight pb-[5px]">
           Zapomenuté heslo
         </h1>
         <p className="text-dark-600">Zadejte svůj email a my vám pošleme instrukce pro obnovení hesla</p>

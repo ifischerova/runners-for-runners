@@ -2,7 +2,7 @@ export const TermsPage = () => {
   return (
     <div className="section-container max-w-4xl mx-auto animate-fade-in">
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-3 leading-tight">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-3 leading-tight pb-[5px]">
           Obchodní podmínky
         </h1>
         <p className="text-dark-600">Podmínky použití platformy Běžci sobě</p>

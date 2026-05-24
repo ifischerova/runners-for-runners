@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Sprout, Users, PiggyBank } from 'lucide-react';
 
 export const HomePage = () => {
   return (
@@ -9,7 +10,7 @@ export const HomePage = () => {
           <span className="text-sm font-semibold text-primary-700">Ekologicky • Společně • Úsporně</span>
         </div>
         
-        <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-primary-600 via-primary-500 to-accent-600 bg-clip-text text-transparent leading-tight">
+        <h1 className="text-5xl/tight md:text-6xl/tight lg:text-7xl/tight font-bold mb-6 bg-gradient-to-r from-primary-600 via-primary-500 to-accent-600 bg-clip-text text-transparent pb-[5px]">
           Cesta na závod?<br />Sdílej ji s běžci!
         </h1>
         
@@ -46,7 +47,7 @@ export const HomePage = () => {
           {/* Ecology Card */}
           <div className="feature-card group">
             <div className="w-16 h-16 bg-gradient-to-br from-accent-400 to-accent-500 rounded-2xl flex items-center justify-center mb-4 transform group-hover:rotate-6 transition-transform shadow-lg">
-              <span className="text-3xl">🌱</span>
+              <Sprout size={32} strokeWidth={1.5} className="text-white" />
             </div>
             <h3 className="text-xl font-bold mb-3 text-dark-800">Ekologie</h3>
             <p className="text-dark-600 leading-relaxed">
@@ -57,7 +58,7 @@ export const HomePage = () => {
           {/* Community Card */}
           <div className="feature-card group">
             <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-500 rounded-2xl flex items-center justify-center mb-4 transform group-hover:rotate-6 transition-transform shadow-lg">
-              <span className="text-3xl">👥</span>
+              <Users size={32} strokeWidth={1.5} className="text-white" />
             </div>
             <h3 className="text-xl font-bold mb-3 text-dark-800">Komunita</h3>
             <p className="text-dark-600 leading-relaxed">
@@ -68,7 +69,7 @@ export const HomePage = () => {
           {/* Savings Card */}
           <div className="feature-card group">
             <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-primary-400 rounded-2xl flex items-center justify-center mb-4 transform group-hover:rotate-6 transition-transform shadow-lg">
-              <span className="text-3xl">💰</span>
+              <PiggyBank size={32} strokeWidth={1.5} className="text-white" />
             </div>
             <h3 className="text-xl font-bold mb-3 text-dark-800">Úspora</h3>
             <p className="text-dark-600 leading-relaxed">

@@ -1,5 +1,6 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { PartyPopper } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export const RegistrationPage = () => {
@@ -94,9 +95,9 @@ export const RegistrationPage = () => {
     <div className="section-container max-w-md mx-auto animate-fade-in">
       <div className="text-center mb-8">
         <div className="inline-block w-16 h-16 bg-gradient-to-br from-accent-500 to-primary-500 rounded-2xl flex items-center justify-center mb-4 mx-auto animate-bounce-slow">
-          <span className="text-3xl">🎉</span>
+          <PartyPopper size={32} strokeWidth={1.5} className="text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-accent-600 to-primary-600 bg-clip-text text-transparent mb-3 leading-tight">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-accent-600 to-primary-600 bg-clip-text text-transparent mb-3 leading-tight pb-[5px]">
           Staň se jedním z nás!
         </h1>
         <p className="text-dark-600">Registruj se zdarma a začni sdílet cesty s běžeckou komunitou</p>

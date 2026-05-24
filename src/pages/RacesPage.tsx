@@ -146,7 +146,7 @@ export const RacesPage = () => {
     <div className="section-container animate-fade-in">
       {/* Hero Section */}
       <div className="text-center mb-10">
-        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-3 leading-tight">
+        <h1 className="text-4xl md:text-5xl/tight font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-3 leading-tight pb-[5px]">
           Běhej dál - dojeď rychleji!
         </h1>
         <p className="text-lg text-dark-600">

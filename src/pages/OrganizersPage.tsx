@@ -1,11 +1,13 @@
+import { Trophy, Megaphone, Sprout, TrendingUp, Handshake, BarChart3 } from 'lucide-react';
+
 export const OrganizersPage = () => {
   return (
     <div className="section-container animate-fade-in">
       <div className="text-center mb-12">
         <div className="inline-block w-16 h-16 bg-gradient-to-br from-accent-500 to-primary-500 rounded-2xl flex items-center justify-center mb-4 mx-auto animate-bounce-slow">
-          <span className="text-3xl">🏆</span>
+          <Trophy size={32} strokeWidth={1.5} className="text-white" />
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-accent-600 to-primary-600 bg-clip-text text-transparent mb-4 leading-tight">
+        <h1 className="text-4xl md:text-5xl/tight font-bold bg-gradient-to-r from-accent-600 to-primary-600 bg-clip-text text-transparent mb-4 leading-tight pb-[5px]">
           Pro pořadatele závodů
         </h1>
         <p className="text-lg text-dark-600 max-w-2xl mx-auto">
@@ -26,7 +28,7 @@ export const OrganizersPage = () => {
         <div className="space-y-4">
           <div className="feature-card">
             <div className="flex items-start space-x-4">
-              <span className="text-3xl">📣</span>
+              <Megaphone size={28} strokeWidth={1.5} className="text-primary-600 flex-shrink-0 mt-1" />
               <div>
                 <h3 className="font-bold text-lg text-dark-800 mb-1">Propagaci vašeho závodu</h3>
                 <p className="text-dark-600">
@@ -37,7 +39,7 @@ export const OrganizersPage = () => {
           </div>
           <div className="feature-card">
             <div className="flex items-start space-x-4">
-              <span className="text-3xl">🌱</span>
+              <Sprout size={28} strokeWidth={1.5} className="text-accent-600 flex-shrink-0 mt-1" />
               <div>
                 <h3 className="font-bold text-lg text-dark-800 mb-1">Ekologický profil</h3>
                 <p className="text-dark-600">
@@ -48,7 +50,7 @@ export const OrganizersPage = () => {
           </div>
           <div className="feature-card">
             <div className="flex items-start space-x-4">
-              <span className="text-3xl">📈</span>
+              <TrendingUp size={28} strokeWidth={1.5} className="text-primary-600 flex-shrink-0 mt-1" />
               <div>
                 <h3 className="font-bold text-lg text-dark-800 mb-1">Větší účast</h3>
                 <p className="text-dark-600">
@@ -59,7 +61,7 @@ export const OrganizersPage = () => {
           </div>
           <div className="feature-card">
             <div className="flex items-start space-x-4">
-              <span className="text-3xl">🤝</span>
+              <Handshake size={28} strokeWidth={1.5} className="text-primary-600 flex-shrink-0 mt-1" />
               <div>
                 <h3 className="font-bold text-lg text-dark-800 mb-1">Komunita</h3>
                 <p className="text-dark-600">
@@ -70,7 +72,7 @@ export const OrganizersPage = () => {
           </div>
           <div className="feature-card">
             <div className="flex items-start space-x-4">
-              <span className="text-3xl">📊</span>
+              <BarChart3 size={28} strokeWidth={1.5} className="text-primary-600 flex-shrink-0 mt-1" />
               <div>
                 <h3 className="font-bold text-lg text-dark-800 mb-1">Statistiky</h3>
                 <p className="text-dark-600">
