@@ -202,9 +202,12 @@ its password.
   `audit=true`)
 - Source maps disabled in production frontend builds
 - BCrypt cost-10 password hashing on the backend
-- Stateless JWT with HS256, 24 h expiration; secret in `application.yml`
-  is suitable for local development only — move to a secret store before
-  any real deployment
+- Stateless JWT with HS256, 24 h expiration. The signing secret and the
+  Postgres credentials are read from environment variables (`JWT_SECRET`,
+  `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`); the YAML
+  defaults are clearly-marked dev placeholders so the app still runs out
+  of the box on a fresh checkout. Set real values via env vars (or a
+  secret store) before any non-development deployment.
 - Method-level authorization via Spring Security `@EnableMethodSecurity`
   (`@PreAuthorize`); URL filter gives a second layer of role checks
 - React's automatic XSS escaping; client-side input validation mirrored by

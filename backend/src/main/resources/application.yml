@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/bezcisobe
-    username: postgres
-    password: postgres
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/bezcisobe}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -21,8 +21,10 @@ spring:
 
 app:
   jwt:
-    secret: bezciSobeJwtSecretKeyThatIsLongEnoughForHS256Algorithm2026
-    expiration-ms: 86400000  # 24 hours
+    # HS256 needs a key of at least 256 bits (32 chars). Override the default
+    # via the JWT_SECRET env var in any non-development environment.
+    secret: ${JWT_SECRET:dev-only-placeholder-rotate-me-before-deploying-to-any-real-environment}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}  # 24 hours
 
 server:
   port: 8080
