@@ -152,14 +152,14 @@ export const RacesPage = () => {
         <h1 className="text-4xl md:text-5xl/tight font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-3 leading-tight pb-[5px]">
           {t('races.hero.title')}
         </h1>
-        <p className="text-lg text-dark-600">
+        <p className="text-lg text-dark-600 dark:text-dark-300">
           {t('races.hero.subtitle')}
         </p>
       </div>
 
       {/* Race Selector Card */}
       <div className="glass-card p-6 mb-8 max-w-3xl mx-auto">
-        <label className="block text-lg font-bold text-dark-800 mb-3">
+        <label className="block text-lg font-bold text-dark-800 dark:text-dark-50 mb-3">
           {t('races.picker.label')}
         </label>
         <Select
@@ -181,33 +181,33 @@ export const RacesPage = () => {
         <div className="card-modern p-6 md:p-8 mb-8 max-w-4xl mx-auto animate-scale-in">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h3 className="text-2xl md:text-3xl font-bold text-dark-800 mb-2">
+              <h3 className="text-2xl md:text-3xl font-bold text-dark-800 dark:text-dark-50 mb-2">
                 {selectedRaceData.name}
               </h3>
-              <div className="flex items-center space-x-2 text-dark-600">
+              <div className="flex items-center space-x-2 text-dark-600 dark:text-dark-300">
                 <span>{selectedRaceData.place}</span>
               </div>
             </div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-4 mt-4">
-            <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-4">
-              <div className="text-sm text-primary-700 font-semibold mb-1">{t('races.detail.date')}</div>
-              <div className="text-lg font-bold text-primary-900">
+            <div className="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 rounded-xl p-4">
+              <div className="text-sm text-primary-700 dark:text-primary-200 font-semibold mb-1">{t('races.detail.date')}</div>
+              <div className="text-lg font-bold text-primary-900 dark:text-primary-100">
                 {formatDate(selectedRaceData.date)}
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-accent-50 to-accent-100 rounded-xl p-4">
-              <div className="text-sm text-accent-700 font-semibold mb-1">{t('races.detail.startTime')}</div>
-              <div className="text-lg font-bold text-accent-900">
+            <div className="bg-gradient-to-br from-accent-50 to-accent-100 dark:from-accent-900/30 dark:to-accent-800/30 rounded-xl p-4">
+              <div className="text-sm text-accent-700 dark:text-accent-200 font-semibold mb-1">{t('races.detail.startTime')}</div>
+              <div className="text-lg font-bold text-accent-900 dark:text-accent-100">
                 {selectedRaceData.startTime}
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-4">
-              <div className="text-sm text-yellow-700 font-semibold mb-1">{t('races.detail.distance')}</div>
-              <div className="text-lg font-bold text-yellow-900">
+            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-xl p-4">
+              <div className="text-sm text-yellow-700 dark:text-yellow-200 font-semibold mb-1">{t('races.detail.distance')}</div>
+              <div className="text-lg font-bold text-yellow-900 dark:text-yellow-100">
                 {selectedRaceData.trackLength.name}
               </div>
             </div>
@@ -219,7 +219,7 @@ export const RacesPage = () => {
                 href={selectedRaceData.web}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center text-primary-600 hover:text-primary-700 font-semibold"
+                className="inline-flex items-center text-primary-600 dark:text-primary-300 hover:text-primary-700 dark:hover:text-primary-200 font-semibold"
               >
                 {t('races.detail.web')}
               </a>
@@ -232,7 +232,7 @@ export const RacesPage = () => {
       {selectedRace && (
         <div className="card-modern p-6 md:p-8 mb-8 max-w-5xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <h3 className="text-2xl font-bold text-dark-800">
+            <h3 className="text-2xl font-bold text-dark-800 dark:text-dark-50">
               {t('races.rides.title')}
             </h3>
             {isAuthenticated && (
@@ -252,7 +252,7 @@ export const RacesPage = () => {
           {/* Create ride form */}
           {showCreateForm && (
             <form onSubmit={handleCreateRide} className="glass-card p-6 mb-6 animate-slide-down">
-              <h4 className="text-xl font-bold text-dark-800 mb-4">{t('races.form.title')}</h4>
+              <h4 className="text-xl font-bold text-dark-800 dark:text-dark-50 mb-4">{t('races.form.title')}</h4>
               <div className="space-y-4">
                 <div>
                   <label className="form-label-custom">{t('races.form.type')}</label>
@@ -314,8 +314,8 @@ export const RacesPage = () => {
                         onClick={() => setNewRide({ ...newRide, availableSeats: n })}
                         className={`p-3 rounded-xl border-2 font-semibold transition-all ${
                           newRide.availableSeats === n
-                            ? 'border-primary-500 bg-primary-50 text-primary-700'
-                            : 'border-gray-200 hover:border-primary-300'
+                            ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/40 dark:text-primary-200 dark:border-primary-400'
+                            : 'border-gray-200 hover:border-primary-300 dark:border-surface-700 dark:text-dark-200 dark:hover:border-primary-400'
                         }`}
                       >
                         {n}
@@ -360,45 +360,45 @@ export const RacesPage = () => {
                   <div className="flex justify-between items-start mb-3">
                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
                       ride.type === RideType.OFFER
-                        ? 'bg-accent-100 text-accent-700'
-                        : 'bg-primary-100 text-primary-700'
+                        ? 'bg-accent-100 text-accent-700 dark:bg-accent-900/40 dark:text-accent-200'
+                        : 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-200'
                     }`}>
                       {ride.type === RideType.OFFER ? t('races.card.type.offer') : t('races.card.type.request')}
                     </span>
                     <div className="text-right">
-                      <div className="text-sm text-dark-600">{t('races.card.seats')}</div>
-                      <div className="text-xl font-bold text-dark-800">
+                      <div className="text-sm text-dark-600 dark:text-dark-300">{t('races.card.seats')}</div>
+                      <div className="text-xl font-bold text-dark-800 dark:text-dark-50">
                         {ride.availableSeats - ride.occupiedSeats}/{ride.availableSeats}
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-2 mb-3">
-                    <div className="flex items-center text-dark-700">
+                    <div className="flex items-center text-dark-700 dark:text-dark-200">
                       <span className="font-semibold">{t('races.card.from')}</span>
                       <span className="ml-2">{ride.from}</span>
                     </div>
                     {ride.to && (
-                      <div className="flex items-center text-dark-700">
+                      <div className="flex items-center text-dark-700 dark:text-dark-200">
                         <span className="font-semibold">{t('races.card.to')}</span>
                         <span className="ml-2">{ride.to}</span>
                       </div>
                     )}
                     {ride.car && (
-                      <div className="flex items-center text-dark-600 text-sm">
+                      <div className="flex items-center text-dark-600 dark:text-dark-300 text-sm">
                         <span>{ride.car}</span>
                       </div>
                     )}
                   </div>
 
                   {ride.notes && (
-                    <p className="text-sm text-dark-600 bg-gray-50 rounded-lg p-3 mb-3">
+                    <p className="text-sm text-dark-600 dark:text-dark-300 bg-gray-50 dark:bg-surface-850 rounded-lg p-3 mb-3">
                       {ride.notes}
                     </p>
                   )}
 
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <div className="text-sm text-dark-600">
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-surface-700">
+                    <div className="text-sm text-dark-600 dark:text-dark-300">
                       {t('races.card.user')} <span className="font-semibold">
                         {ride.userFirstName && ride.userLastName
                           ? `${ride.userFirstName} ${ride.userLastName}`
@@ -409,7 +409,7 @@ export const RacesPage = () => {
                       {isAuthenticated && ride.userId === user?.id && (
                         <button
                           onClick={() => handleDeleteRide(ride.id)}
-                          className="text-sm font-semibold text-red-600 hover:text-red-700 px-3 py-1 rounded-lg hover:bg-red-50 transition-colors"
+                          className="text-sm font-semibold text-red-600 dark:text-red-300 hover:text-red-700 dark:hover:text-red-200 px-3 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
                         >
                           {t('common.delete')}
                         </button>
@@ -419,25 +419,25 @@ export const RacesPage = () => {
                           {ride.passengers.includes(user?.id || '') ? (
                             <button
                               onClick={() => handleCancelAcceptance(ride.id)}
-                              className="text-sm font-semibold text-yellow-600 hover:text-yellow-700 px-3 py-1 rounded-lg hover:bg-yellow-50 transition-colors"
+                              className="text-sm font-semibold text-yellow-600 dark:text-yellow-300 hover:text-yellow-700 dark:hover:text-yellow-200 px-3 py-1 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-950/40 transition-colors"
                             >
                               {t('races.card.cancelAcceptance')}
                             </button>
                           ) : ride.availableSeats > ride.occupiedSeats ? (
                             <button
                               onClick={() => handleAcceptRide(ride.id)}
-                              className="text-sm font-semibold text-accent-600 hover:text-accent-700 px-3 py-1 rounded-lg hover:bg-accent-50 transition-colors"
+                              className="text-sm font-semibold text-accent-600 dark:text-accent-300 hover:text-accent-700 dark:hover:text-accent-200 px-3 py-1 rounded-lg hover:bg-accent-50 dark:hover:bg-accent-900/40 transition-colors"
                             >
                               {t('races.card.accept')}
                             </button>
                           ) : (
-                            <span className="text-sm text-gray-400 italic">{t('races.card.full')}</span>
+                            <span className="text-sm text-gray-400 dark:text-dark-400 italic">{t('races.card.full')}</span>
                           )}
                         </>
                       )}
                       {isAuthenticated && ride.userId !== user?.id && ride.type === RideType.REQUEST && (
                         <button
-                          className="text-sm font-semibold text-primary-600 hover:text-primary-700 px-3 py-1 rounded-lg hover:bg-primary-50 transition-colors"
+                          className="text-sm font-semibold text-primary-600 dark:text-primary-300 hover:text-primary-700 dark:hover:text-primary-200 px-3 py-1 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/40 transition-colors"
                         >
                           {t('common.contact')}
                         </button>
@@ -449,19 +449,19 @@ export const RacesPage = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-lg text-dark-600 mb-2">{t('races.rides.empty.title')}</p>
-              <p className="text-dark-500">{t('races.rides.empty.subtitle')}</p>
+              <p className="text-lg text-dark-600 dark:text-dark-300 mb-2">{t('races.rides.empty.title')}</p>
+              <p className="text-dark-500 dark:text-dark-400">{t('races.rides.empty.subtitle')}</p>
             </div>
           )}
         </div>
       )}
 
       {!isAuthenticated && selectedRace && (
-        <div className="glass-card p-6 text-center max-w-2xl mx-auto border-2 border-accent-300 animate-scale-in">
-          <h3 className="text-xl font-bold text-dark-800 mb-2">
+        <div className="glass-card p-6 text-center max-w-2xl mx-auto border-2 border-accent-300 dark:border-accent-800 animate-scale-in">
+          <h3 className="text-xl font-bold text-dark-800 dark:text-dark-50 mb-2">
             {t('races.rides.loginPrompt.title')}
           </h3>
-          <p className="text-dark-600 mb-6">
+          <p className="text-dark-600 dark:text-dark-300 mb-6">
             {t('races.rides.loginPrompt.before')} <span className="font-bold">{t('races.rides.loginPrompt.linkText')}</span>.
           </p>
           <button

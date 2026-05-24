@@ -102,13 +102,13 @@ export const RegistrationPage = () => {
         <h1 className="text-4xl font-bold bg-gradient-to-r from-accent-600 to-primary-600 bg-clip-text text-transparent mb-3 leading-tight pb-[5px]">
           {t('auth.register.title')}
         </h1>
-        <p className="text-dark-600">{t('auth.register.subtitle')}</p>
+        <p className="text-dark-600 dark:text-dark-300">{t('auth.register.subtitle')}</p>
       </div>
 
       <div className="glass-card p-8 animate-scale-in">
         <form onSubmit={handleSubmit} className="space-y-5">
           {errors.general && (
-            <div className="bg-red-50 border-2 border-red-300 text-red-700 px-4 py-3 rounded-xl animate-slide-down">
+            <div className="bg-red-50 border-2 border-red-300 text-red-700 dark:bg-red-950/40 dark:border-red-800 dark:text-red-200 px-4 py-3 rounded-xl animate-slide-down">
               <span>{errors.general}</span>
             </div>
           )}
@@ -127,7 +127,7 @@ export const RegistrationPage = () => {
               autoComplete="username"
               placeholder={t('auth.register.username.placeholder')}
             />
-            {errors.username && <p className="text-red-600 text-sm mt-1">{errors.username}</p>}
+            {errors.username && <p className="text-red-600 dark:text-red-300 text-sm mt-1">{errors.username}</p>}
           </div>
 
           <div>
@@ -144,7 +144,7 @@ export const RegistrationPage = () => {
               autoComplete="email"
               placeholder={t('auth.register.email.placeholder')}
             />
-            {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
+            {errors.email && <p className="text-red-600 dark:text-red-300 text-sm mt-1">{errors.email}</p>}
           </div>
 
           <div>
@@ -162,7 +162,7 @@ export const RegistrationPage = () => {
               minLength={6}
               placeholder={t('auth.register.password.placeholder')}
             />
-            {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
+            {errors.password && <p className="text-red-600 dark:text-red-300 text-sm mt-1">{errors.password}</p>}
           </div>
 
           <div>
@@ -179,10 +179,10 @@ export const RegistrationPage = () => {
               autoComplete="new-password"
               placeholder={t('auth.register.confirm.placeholder')}
             />
-            {errors.confirmPassword && <p className="text-red-600 text-sm mt-1">{errors.confirmPassword}</p>}
+            {errors.confirmPassword && <p className="text-red-600 dark:text-red-300 text-sm mt-1">{errors.confirmPassword}</p>}
           </div>
 
-          <div className="bg-primary-50 border-2 border-primary-200 rounded-xl p-4">
+          <div className="bg-primary-50 border-2 border-primary-200 dark:bg-primary-900/20 dark:border-primary-800 rounded-xl p-4">
             <div className="flex items-start">
               <input
                 type="checkbox"
@@ -192,15 +192,15 @@ export const RegistrationPage = () => {
                 className="mt-1 mr-3 w-4 h-4 accent-primary-600"
                 required
               />
-              <label htmlFor="terms" className="text-sm text-dark-700">
+              <label htmlFor="terms" className="text-sm text-dark-700 dark:text-dark-200">
                 {t('auth.register.terms.before')}{' '}
-                <Link to="/terms" className="text-primary-600 hover:text-primary-700 font-semibold underline">
+                <Link to="/terms" className="text-primary-600 dark:text-primary-300 hover:text-primary-700 dark:hover:text-primary-200 font-semibold underline">
                   {t('auth.register.terms.link')}
                 </Link>
                 {' '}*
               </label>
             </div>
-            {errors.terms && <p className="text-red-600 text-sm mt-2">{errors.terms}</p>}
+            {errors.terms && <p className="text-red-600 dark:text-red-300 text-sm mt-2">{errors.terms}</p>}
           </div>
 
           <button
@@ -211,10 +211,10 @@ export const RegistrationPage = () => {
             {isLoading ? t('auth.register.submitting') : t('auth.register.submit')}
           </button>
 
-          <div className="border-t border-gray-200 pt-4">
-            <p className="text-center text-sm text-dark-600">
+          <div className="border-t border-gray-200 dark:border-surface-700 pt-4">
+            <p className="text-center text-sm text-dark-600 dark:text-dark-300">
               {t('auth.register.haveAccount')}{' '}
-              <Link to="/login" className="text-primary-600 hover:text-primary-700 font-bold">
+              <Link to="/login" className="text-primary-600 dark:text-primary-300 hover:text-primary-700 dark:hover:text-primary-200 font-bold">
                 {t('auth.register.signInLink')}
               </Link>
             </p>

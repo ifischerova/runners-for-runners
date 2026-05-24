@@ -33,6 +33,9 @@ const cs = {
   'common.languageSwitcher.label': 'Přepnout jazyk',
   'common.languageSwitcher.cs': 'Čeština',
   'common.languageSwitcher.en': 'Angličtina',
+  'common.themeSwitcher.label': 'Přepnout motiv',
+  'common.themeSwitcher.toDark': 'Přepnout na tmavý motiv',
+  'common.themeSwitcher.toLight': 'Přepnout na světlý motiv',
 
   // ===== home =====
   'home.badge': 'Ekologicky • Společně • Úsporně',
@@ -320,6 +323,9 @@ const en: Record<keyof typeof cs, string> = {
   'common.languageSwitcher.label': 'Switch language',
   'common.languageSwitcher.cs': 'Czech',
   'common.languageSwitcher.en': 'English',
+  'common.themeSwitcher.label': 'Switch theme',
+  'common.themeSwitcher.toDark': 'Switch to dark theme',
+  'common.themeSwitcher.toLight': 'Switch to light theme',
 
   // ===== home =====
   'home.badge': 'Eco • Together • Affordable',

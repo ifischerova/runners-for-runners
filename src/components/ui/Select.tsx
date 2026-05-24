@@ -104,17 +104,19 @@ export function Select({
         aria-expanded={open}
         className="w-full pl-4 pr-12 py-3.5 rounded-xl border-2 border-gray-200 bg-white text-left
           hover:border-primary-300 focus:border-primary-500 focus:ring-4 focus:ring-primary-100
-          transition-all duration-200 outline-none flex items-center"
+          transition-all duration-200 outline-none flex items-center
+          dark:bg-surface-850 dark:border-surface-700 dark:hover:border-primary-400
+          dark:focus:border-primary-400 dark:focus:ring-primary-900/40"
       >
         <span
-          className={`truncate ${selected ? 'text-dark-800' : 'text-dark-400'}`}
+          className={`truncate ${selected ? 'text-dark-800 dark:text-dark-50' : 'text-dark-400 dark:text-dark-400'}`}
         >
           {selected ? selected.label : placeholderText}
         </span>
         <ChevronDown
           size={20}
           strokeWidth={1.75}
-          className={`absolute right-4 top-1/2 -translate-y-1/2 text-dark-500 transition-transform duration-200 ${
+          className={`absolute right-4 top-1/2 -translate-y-1/2 text-dark-500 dark:text-dark-300 transition-transform duration-200 ${
             open ? 'rotate-180' : ''
           }`}
         />
@@ -131,14 +133,14 @@ export function Select({
               width: panelPos.width,
               zIndex: 1000,
             }}
-            className="bg-white border-2 border-gray-100 rounded-xl shadow-xl max-h-80 flex flex-col overflow-hidden animate-fade-in"
+            className="bg-white border-2 border-gray-100 rounded-xl shadow-xl max-h-80 flex flex-col overflow-hidden animate-fade-in dark:bg-surface-900 dark:border-surface-700 dark:shadow-black/50"
           >
             {searchable && (
-              <div className="p-3 border-b border-gray-100 flex items-center gap-2">
+              <div className="p-3 border-b border-gray-100 dark:border-surface-700 flex items-center gap-2">
                 <Search
                   size={16}
                   strokeWidth={1.75}
-                  className="text-dark-400 flex-shrink-0"
+                  className="text-dark-400 dark:text-dark-300 flex-shrink-0"
                 />
                 <input
                   type="text"
@@ -146,7 +148,7 @@ export function Select({
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={searchPlaceholderText}
-                  className="flex-1 outline-none text-sm bg-transparent placeholder:text-dark-400"
+                  className="flex-1 outline-none text-sm bg-transparent placeholder:text-dark-400 dark:text-dark-50 dark:placeholder:text-dark-400"
                 />
               </div>
             )}
@@ -167,10 +169,10 @@ export function Select({
                       setOpen(false);
                       setSearch('');
                     }}
-                    className={`w-full text-left px-4 py-2.5 transition-colors text-dark-700 ${
+                    className={`w-full text-left px-4 py-2.5 transition-colors text-dark-700 dark:text-dark-200 ${
                       option.value === value
-                        ? 'bg-primary-50 font-semibold text-primary-700'
-                        : 'hover:bg-primary-50/60'
+                        ? 'bg-primary-50 font-semibold text-primary-700 dark:bg-primary-900/40 dark:text-primary-200'
+                        : 'hover:bg-primary-50/60 dark:hover:bg-primary-900/30'
                     }`}
                   >
                     {option.label}

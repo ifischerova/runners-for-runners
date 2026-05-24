@@ -20,7 +20,7 @@ export function Flag({ code, size = 20, className = '' }: FlagProps) {
         height={size}
         role="img"
         aria-hidden="true"
-        className={`rounded-sm border border-gray-200/60 ${className}`}
+        className={`rounded-sm border border-gray-200/60 dark:border-white/20 ${className}`}
       >
         <rect width="60" height="20" fill="#ffffff" />
         <rect y="20" width="60" height="20" fill="#d7141a" />
@@ -37,7 +37,7 @@ export function Flag({ code, size = 20, className = '' }: FlagProps) {
       height={size}
       role="img"
       aria-hidden="true"
-      className={`rounded-sm border border-gray-200/60 ${className}`}
+      className={`rounded-sm border border-gray-200/60 dark:border-white/20 ${className}`}
     >
       <rect width="60" height="40" fill="#012169" />
       {/* white diagonals */}

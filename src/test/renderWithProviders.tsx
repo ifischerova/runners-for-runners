@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '../contexts/AuthContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
 import type { Locale } from '../i18n/translations';
 
 interface Options {
@@ -21,12 +22,16 @@ export function renderWithProviders(
   const tree = withAuth ? (
     <BrowserRouter>
       <LanguageProvider>
-        <AuthProvider>{ui}</AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>{ui}</AuthProvider>
+        </ThemeProvider>
       </LanguageProvider>
     </BrowserRouter>
   ) : (
     <BrowserRouter>
-      <LanguageProvider>{ui}</LanguageProvider>
+      <LanguageProvider>
+        <ThemeProvider>{ui}</ThemeProvider>
+      </LanguageProvider>
     </BrowserRouter>
   );
   return render(tree);

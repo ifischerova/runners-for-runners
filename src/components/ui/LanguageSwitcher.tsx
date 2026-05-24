@@ -6,39 +6,25 @@ interface LanguageSwitcherProps {
   className?: string;
 }
 
-const LOCALES: { code: Locale; labelKey: 'common.languageSwitcher.cs' | 'common.languageSwitcher.en' }[] = [
-  { code: 'cs', labelKey: 'common.languageSwitcher.cs' },
-  { code: 'en', labelKey: 'common.languageSwitcher.en' },
-];
-
+// Shows a single flag — the *other* locale. Clicking it flips the language.
 export function LanguageSwitcher({ className = '' }: LanguageSwitcherProps) {
   const { locale, setLocale, t } = useTranslation();
+  const nextLocale: Locale = locale === 'cs' ? 'en' : 'cs';
+  const labelKey =
+    nextLocale === 'cs'
+      ? ('common.languageSwitcher.cs' as const)
+      : ('common.languageSwitcher.en' as const);
+  const label = t(labelKey);
 
   return (
-    <div
-      role="group"
-      aria-label={t('common.languageSwitcher.label')}
-      className={`inline-flex items-center gap-1 ${className}`}
+    <button
+      type="button"
+      onClick={() => setLocale(nextLocale)}
+      aria-label={label}
+      title={label}
+      className={`flex items-center justify-center w-9 h-7 rounded-md border border-transparent transition-all duration-200 opacity-80 hover:opacity-100 hover:border-gray-300 dark:hover:border-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:ring-offset-1 focus:ring-offset-white/50 dark:focus:ring-offset-surface-900 ${className}`}
     >
-      {LOCALES.map(({ code, labelKey }) => {
-        const isActive = locale === code;
-        return (
-          <button
-            key={code}
-            type="button"
-            onClick={() => setLocale(code)}
-            aria-label={t(labelKey)}
-            aria-pressed={isActive}
-            className={`flex items-center justify-center w-9 h-7 rounded-md border border-transparent transition-all duration-200 ${
-              isActive
-                ? 'opacity-100 ring-2 ring-primary-500 ring-offset-1 ring-offset-white/50'
-                : 'opacity-50 hover:opacity-100 hover:border-gray-300'
-            }`}
-          >
-            <Flag code={code} size={20} />
-          </button>
-        );
-      })}
-    </div>
+      <Flag code={nextLocale} size={20} />
+    </button>
   );
 }
