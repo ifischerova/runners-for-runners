@@ -2,8 +2,6 @@
 
 [Česky](TECHNICKA_DOKUMENTACE.md) | **English**
 
-**Semester project for the Web Application Development course**
-
 ## 1. Project overview
 
 Běžci sobě is a modern full-stack web application for sharing transport
@@ -685,9 +683,9 @@ npm run preview     # local preview of the production build
 
 ## 13. Conclusion
 
-The project meets and exceeds the assignment requirements:
+Key capabilities the project ships with:
 
-- ✅ At least 5 views (I have 9)
+- ✅ 9 distinct pages / views
 - ✅ React with TypeScript
 - ✅ Routing (React Router)
 - ✅ State management (Context API)
@@ -729,5 +727,4 @@ The project meets and exceeds the assignment requirements:
 
 **Author**: Iva Fischerová  
 **Date**: January 2026 (frontend), May 2026 (full-stack refactor)  
-**Course**: Web Application Development  
 **Version**: 2.0

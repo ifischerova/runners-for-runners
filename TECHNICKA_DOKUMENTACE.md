@@ -2,8 +2,6 @@
 
 **Česky** | [English](TECHNICAL_DOCUMENTATION.md)
 
-**Semestrální práce pro předmět Tvorba webových aplikací**
-
 ## 1. Přehled projektu
 
 Běžci sobě je moderní full-stack webová aplikace pro sdílení dopravy mezi běžci, kteří jedou na různé závody. Frontend je SPA postavená v Reactu s TypeScriptem, backend je REST API ve Spring Bootu nad PostgreSQL. Původní verze projektu používala LocalStorage jako mock backend; aktuální verze má reálný backend s databází a JWT autentizací.
@@ -648,9 +646,9 @@ npm run preview     # lokální preview produkčního buildu
 
 ## 13. Závěr
 
-Projekt splňuje a překračuje požadavky zadání:
+Klíčové vlastnosti projektu:
 
-- ✅ Minimálně 5 views (mám 9)
+- ✅ 9 různých view komponent
 - ✅ React s TypeScriptem
 - ✅ Routing (React Router)
 - ✅ State management (Context API)
@@ -692,5 +690,4 @@ Projekt splňuje a překračuje požadavky zadání:
 
 **Autor**: Iva Fischerová  
 **Datum**: Leden 2026 (frontend), Květen 2026 (full-stack refactor)  
-**Předmět**: Tvorba webových aplikací  
 **Verze**: 2.0
