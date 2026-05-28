@@ -3,6 +3,7 @@ package cz.bezcisobe.backend.service;
 import cz.bezcisobe.backend.dto.mapper.UserMapper;
 import cz.bezcisobe.backend.dto.request.LoginRequest;
 import cz.bezcisobe.backend.dto.request.RegisterRequest;
+import cz.bezcisobe.backend.dto.request.UpdateProfileRequest;
 import cz.bezcisobe.backend.dto.response.AuthResponse;
 import cz.bezcisobe.backend.dto.response.UserResponse;
 import cz.bezcisobe.backend.entity.PasswordResetToken;
@@ -196,6 +197,35 @@ public class AuthService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> ResourceNotFoundException.of("error.auth.user_not_found"));
         return userMapper.toResponse(user);
+    }
+
+    @Transactional
+    public void changePassword(String username, String currentPassword, String newPassword) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> ResourceNotFoundException.of("error.auth.user_not_found"));
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw BadRequestException.of("error.auth.invalid_current_password");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        try {
+            emailService.sendPasswordChangedEmail(user.getEmail(), Locale.forLanguageTag(user.getLanguage()));
+        } catch (Exception e) {
+            log.warn("Failed to send password-changed email to {}: {}", user.getEmail(), e.getMessage());
+        }
+        log.info("Password changed for user id={}, username='{}'", user.getId(), user.getUsername());
+    }
+
+    @Transactional
+    public UserResponse updateProfile(String username, UpdateProfileRequest request) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> ResourceNotFoundException.of("error.auth.user_not_found"));
+        if (request.firstName() != null) user.setFirstName(request.firstName());
+        if (request.lastName() != null) user.setLastName(request.lastName());
+        if (request.city() != null) user.setCity(request.city());
+        if (request.language() != null) user.setLanguage(request.language());
+        User saved = userRepository.save(user);
+        return userMapper.toResponse(saved);
     }
 
     private void issueVerificationToken(User user) {
