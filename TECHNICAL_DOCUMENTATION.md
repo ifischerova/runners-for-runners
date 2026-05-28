@@ -483,7 +483,8 @@ The app works on all devices:
 
 ### 8.2 User accounts
 
-**Test accounts:**
+**Test accounts (DEV / DEMO ONLY — must be removed before any production
+deployment; the documented passwords are NOT considered secrets):**
 
 - Admin: `admin` / `admin123` (`ROLE_ADMIN` + `ROLE_USER`)
 - Users: `ivka` / `ivka123`, `jana.novakova` / `password123`

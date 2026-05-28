@@ -461,7 +461,8 @@ Aplikace funguje na všech zařízeních:
 
 ### 8.2 Uživatelské účty
 
-**Testovací účty:**
+**Testovací účty (POUZE PRO VÝVOJ / DEMO — před produkčním nasazením
+je nutné je smazat; uvedená hesla se nepovažují za tajná):**
 
 - Admin: `admin` / `admin123` (`ROLE_ADMIN` + `ROLE_USER`)
 - Uživatel: `ivka` / `ivka123`, `jana.novakova` / `password123`

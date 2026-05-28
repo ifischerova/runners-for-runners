@@ -207,6 +207,14 @@ at ERROR (`GlobalExceptionHandler#handleUnexpected`).
 
 ## Test accounts (seed)
 
+> ⚠️ **DEV / DEMO ONLY** — the accounts listed below exist only to make
+> local development and the academic defence walkthrough possible. They
+> are seeded by Flyway migrations V3/V5/V9 and their passwords are
+> documented in this README. **Before any non-development deployment,
+> all seeded accounts must be deleted (or have their passwords rotated)
+> and a fresh admin must be provisioned through your standard DBA process.**
+> The seeded credentials are NOT considered secrets.
+
 V3 baseline accounts:
 
 | Username        | Password      | Roles                          |
