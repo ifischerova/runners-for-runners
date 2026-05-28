@@ -62,13 +62,13 @@ class AuthControllerTest {
 
     @Test
     void register_success() throws Exception {
-        UserResponse response = new UserResponse("new-id", "newuser", "new@test.cz", null, null, null, List.of("ROLE_USER"));
+        UserResponse response = new UserResponse("new-id", "newuser", "new@test.cz", null, null, null, "cs", List.of("ROLE_USER"));
         when(authService.register(any(RegisterRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new RegisterRequest("newuser", "new@test.cz", "password123"))))
+                                new RegisterRequest("newuser", "new@test.cz", "password123", null))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.username").value("newuser"));
     }
@@ -78,7 +78,7 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new RegisterRequest("ab", "invalid", "12345"))))
+                                new RegisterRequest("ab", "invalid", "12345", null))))
                 .andExpect(status().isBadRequest());
     }
 }

@@ -84,10 +84,12 @@ public class AuthService {
             throw new DuplicateResourceException("Email již existuje");
         }
 
+        String lang = request.language() == null || request.language().isBlank() ? "cs" : request.language();
         User user = User.builder()
                 .username(request.username())
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
+                .language(lang)
                 .emailVerified(false)
                 .roles(Set.of(Role.ROLE_USER))
                 .build();

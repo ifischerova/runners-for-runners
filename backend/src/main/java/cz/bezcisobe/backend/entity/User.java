@@ -38,6 +38,10 @@ public class User {
     @Column(length = 50)
     private String city;
 
+    @Column(nullable = false, length = 2)
+    @Builder.Default
+    private String language = "cs";
+
     @Column(name = "email_verified", nullable = false)
     @Builder.Default
     private boolean emailVerified = false;
