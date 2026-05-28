@@ -653,6 +653,18 @@ by se přidal `RequireAuth` wrapper.)
 - **Locale:** `localStorage` pod klíčem `bezci_locale`.
 - **Theme:** `localStorage` pod klíčem `bezci_theme`.
 
+> **Bezpečnostní poznámka k uložení JWT:** JWT je uložené
+> v `localStorage`, ne v `HttpOnly` `Secure` cookie. Je to vědomý
+> kompromis pro tento projekt — `localStorage` zjednodušuje práci
+> s tokenem ve frontendu (snadné přiložení do `Authorization`
+> hlavičky přes `fetch`), nevyžaduje CSRF ochranu a nepotřebuje
+> CORS pro cookies. Nevýhoda: token je čitelný jakýmkoli skriptem
+> běžícím ve stránce, takže případný XSS útok by ho mohl
+> exfiltrovat. Pro produkční nasazení by bezpečnější variantou
+> bylo přesunout JWT do `HttpOnly` `Secure` `SameSite=Strict`
+> cookie a doplnit CSRF ochranu. React XSS auto-escaping a
+> přísný CSP by riziko dále snížily.
+
 ### 7.4 API komunikace
 
 `apiService.ts` je tenký wrapper nad `fetch`. Tři klíčová rozhodnutí:
