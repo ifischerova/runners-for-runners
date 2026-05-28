@@ -196,9 +196,9 @@ sledovaných sloupců (např. `jana.novakova`).
 | ------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | Výpis a hledání uživatelů             | **Lze:** plně přes `/api/admin/users`.                                                              |
 | Detail jednoho uživatele              | **Nelze:** aktuálně není dedikovaný `GET /api/admin/users/{id}`. Najdi přes `?q=<username>` v seznamu. |
-| Smazání uživatele                     | **Nelze:** není endpoint. Pokud je potřeba, řeš přes DBA proces (viz §2.1).                         |
+| Smazání uživatele                     | **Self-service:** uživatel si může účet smazat sám v Profil → Nebezpečná zóna. Pro ručně iniciované smazání (např. na žádost právního oddělení) viz DBA proces (viz §2.1). |
 | Změna role uživatele                  | **Nelze:** není UI. Použij Flyway migraci přes DBA proces (viz §2.1).                               |
-| Reset hesla cizímu uživateli          | **Nelze:** není endpoint. Workaround: požádej uživatele, ať si projde "Zapomenuté heslo".            |
+| Změna hesla a osobních údajů uživatele| **Self-service:** uživatel si může z profilu změnit heslo i základní údaje (jméno, příjmení, město, jazyk). Pokud heslo uživatel nezná, ať si projde "Zapomenuté heslo". |
 
 ---
 
@@ -226,8 +226,10 @@ smazat, i pokud není jejím vlastníkem.
 
 - Vlastník jízdy přijde o své uvedení v seznamu jízd k závodu.
 - Případní přijatí pasažéři uvidí jízdu jako smazanou (po refreshi).
-- Aplikace neposílá uživatelům notifikaci o smazání – pokud je
-  to potřeba, kontaktuj je manuálně.
+- Při force-delete jízdy administrátorem se automaticky odešle
+  e-mail řidiči i všem aktivně přijatým spolujezdcům s informací,
+  že jízdu zrušil administrátor. Selhání odeslání e-mailu jen
+  zaloguje WARN a samotnou operaci smazání nezastaví.
 
 ### 6.3 Rozdíl mezi user-delete a admin-delete
 
@@ -426,8 +428,9 @@ INFO ... c.b.b.service.EmailService - Email sent to user@example.com (Běžci so
 1. Najdi účet přes `GET /api/admin/users?q=...`.
 2. Smaž jeho jednotlivé jízdy přes `DELETE /api/admin/rides/{id}`.
 3. Pokud potřebuješ účet úplně odstavit nebo smazat, eskaluj přes
-   **DBA proces** (viz §2.1) — destruktivní operace nad účty
-   nepatří do ad-hoc admin práce.
+   **DBA proces** (viz §2.1) — administrátorské API nemá endpoint
+   pro mazání cizího účtu. Self-service smazání účtu provádí
+   uživatel sám v Profil → Nebezpečná zóna.
 
 ### 10.4 Databáze přerůstá tokenovou tabulkou
 

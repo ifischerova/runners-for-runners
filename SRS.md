@@ -135,7 +135,12 @@ Konvence: **FRn** = funkční požadavek, **Pn** = priorita
 | FR8   | P1 | Uživatel může požádat o reset hesla zadáním e-mailové adresy.                                                                                                          |
 | FR9   | P1 | Při reset-požadavku systém pošle e-mailem reset token s platností 1 hodina (pouze pokud e-mail patří existujícímu účtu, ale toto rozhodnutí klientovi neprozradí).      |
 | FR10  | P1 | Uživatel může pomocí reset tokenu nastavit nové heslo. Úspěšný reset zároveň označí účet jako ověřený.                                                                  |
-| FR11  | P1 | Uživatel může zobrazit svůj profil (jméno, e-mail, město, role).                                                                                                       |
+| FR11  | P1 | Uživatel může zobrazit a upravit svůj profil (jméno, e-mail [r/o], město, jazyk, role [r/o]).                                                                          |
+| FR33  | P1 | Přihlášený uživatel může změnit své heslo z profilu (zadává aktuální + nové). Po úspěchu obdrží e-mailové potvrzení.                                                    |
+| FR34  | P1 | Přihlášený uživatel může upravit jméno, příjmení, město a jazykovou preferenci (cs/en).                                                                                |
+| FR35  | P1 | Přihlášený uživatel může smazat svůj účet (s potvrzením heslem). Cascade ruší jeho jízdy a posílá e-maily dotčeným uživatelům.                                          |
+| FR36  | P1 | Při přijetí / zrušení přijetí / smazání jízdy se odesílají e-mailové notifikace dotčeným stranám.                                                                       |
+| FR37  | P1 | Při administrátorském smazání jízdy se odesílají e-mailové notifikace řidiči i všem přijatým spolujezdcům.                                                              |
 
 ### 3.2 Závody
 
@@ -207,7 +212,7 @@ Konvence: **FRn** = funkční požadavek, **Pn** = priorita
 | ID    | Požadavek                                                                                                                              |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | NFR12 | Všechny formuláře mají klientskou validaci (HTML5 + JS) i serverovou validaci (Bean Validation).                                       |
-| NFR13 | Klientská validace má hlášky v jazyce UI (cs/en). Serverové chyby jsou v aktuální verzi jen v češtině; lokalizace serverových chyb přes `Accept-Language` header je na roadmapě. |
+| NFR13 | Klientská validace má hlášky v jazyce UI (cs/en). Validační i business chybové hlášky API jsou lokalizované (cs/en) — viz NFR26.                                       |
 | NFR14 | UI je responzivní od šířky 320 px (telefon) po desktop.                                                                                |
 
 ### 4.4 Spolehlivost a údržba
@@ -235,6 +240,13 @@ Konvence: **FRn** = funkční požadavek, **Pn** = priorita
 | NFR23 | API je dokumentováno přes OpenAPI 3 a vystaveno přes Swagger UI na `/swagger-ui.html`.                                              |
 | NFR24 | Swagger UI vystavuje JWT bearer schéma, takže lze chráněné endpointy volat přímo z prohlížeče.                                      |
 | NFR25 | Klíčové třídy mají JavaDoc komentáře.                                                                                              |
+
+### 4.7 Lokalizace
+
+| ID    | Požadavek                                                                                                                                                                                            |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NFR26 | Validace a chybové hlášky API jsou lokalizované (cs, en). Výběr jazyka: 1) jazyková preference přihlášeného uživatele, 2) hlavička `Accept-Language`, 3) výchozí `cs`.                                |
+| NFR27 | E-mailové notifikace jsou lokalizované podle jazyka příjemce.                                                                                                                                        |
 
 ---
 

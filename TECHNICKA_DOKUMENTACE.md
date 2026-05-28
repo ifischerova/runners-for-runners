@@ -619,14 +619,49 @@ Konfigurace `OpenApiConfig` přidává JWT bearer security scheme — v UI lze p
 Pro reálný provoz by byla ještě potřeba:
 
 - Real-time chat mezi uživateli
-- Push notifikace (transakční e-maily pro ověření a reset hesla už
-  fungují; in-app / push notifikace a marketingové e-mailové digesty
-  zatím chybí)
+- In-app / push notifikace a marketingové e-mailové digesty
+  (transakční e-maily už pokrývají ověření, reset hesla, změnu
+  hesla, smazání účtu, přijetí / zrušení přijetí / smazání jízdy
+  řidičem a administrátorské force-delete — viz §13 níže)
 - Mapová integrace
 - Hodnocení řidičů / spolujezdců
 - Platební brána
 - Refresh tokeny + odvolávání JWT
-- Mobilní aplikace
+- Nativní mobilní aplikace
+
+### 11.3 Lokalizace (i18n)
+
+Chybové hlášky backendu a e-mailové šablony jsou lokalizované
+pro **cs** a **en** přes Spring `MessageSource`.
+
+- **Konfigurace:** `I18nConfig.java` registruje
+  `ReloadableResourceBundleMessageSource` s basenames
+  `messages` a `ValidationMessages` (UTF-8, žádný systémový
+  fallback) a pinuje `LocalValidatorFactoryBean` na stejný
+  source.
+- **Resolver locale:** vlastní `UserLocaleResolver` vybírá
+  Locale podle priority — (1) jazyková preference přihlášeného
+  uživatele (`UserDetailsImpl.getLanguage()`), (2) hlavička
+  `Accept-Language` (přijímá cs|en), (3) výchozí `cs`.
+- **Klíčové namespace:**
+  - `validation.<field>.<rule>` — Bean Validation zprávy na
+    request DTO.
+  - `error.<area>.<reason>` — business chybové hlášky vyhozené
+    ze service vrstvy.
+  - `email.<event>[.<recipient>].{subject|body}` — předměty
+    a těla e-mailů.
+- **Přidání nového jazyka:** přidej
+  `messages_<locale>.properties` a
+  `ValidationMessages_<locale>.properties` do
+  `backend/src/main/resources/`, doplň všechny klíče
+  z existujících cs / en souborů a rozšiř `UserLocaleResolver`
+  o whitelist nového tagu.
+
+Lokalizované výjimky (`BadRequestException`,
+`ResourceNotFoundException`, `DuplicateResourceException`)
+implementují `LocalizedException` a používají statickou
+továrnu `.of(key, args)`; `GlobalExceptionHandler` resolvuje
+klíče přes `LocaleContextHolder.getLocale()`.
 
 ## 12. Spuštění projektu
 

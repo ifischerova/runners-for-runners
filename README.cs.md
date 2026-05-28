@@ -57,6 +57,14 @@ filter/provider/UserDetails), `validation/` (vlastní pravidlo
   události, validační chyby a neočekávané pády
 - Dvojjazyčné UI (čeština / angličtina) — jedna vlajka v hlavičce, kliknutí
   přepne na *druhý* jazyk
+- **Profilová samoobsluha:** změna hesla, úprava základních údajů (jméno,
+  příjmení, město), jazyková preference, smazání účtu
+- **Lokalizované e-mailové notifikace a chybové hlášky API (cs + en)** —
+  vybírají se podle jazykové preference přihlášeného uživatele, jinak
+  podle hlavičky `Accept-Language`, jinak `cs`
+- **Notifikace o událostech jízd:** přijetí / zrušení přijetí spolujezdcem,
+  smazání jízdy řidičem i administrátorské force-delete posílají e-maily
+  všem dotčeným stranám
 - Světlý **i** tmavý motiv — plovoucí Sun/Moon přepínač na každé stránce,
   při první návštěvě respektuje OS `prefers-color-scheme` a poté si
   pamatuje uživatelovu volbu; v tmavém režimu se brand překresluje do

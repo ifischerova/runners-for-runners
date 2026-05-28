@@ -57,6 +57,13 @@ constraint), `exception/` (typed exceptions + global handler).
   validation failures, and unexpected errors
 - Bilingual UI (Czech / English) — single-flag header switcher that flips
   to the *other* language with one click
+- **Profile self-service:** change password, edit basic info (first name,
+  last name, city), set language preference, delete account
+- **Localized email notifications and API error messages (cs + en)** —
+  resolved from the logged-in user's preference, falling back to the
+  `Accept-Language` header, then `cs`
+- **Ride event notifications:** passenger accept / cancel / delete by
+  driver / admin force-delete each fire an email to the affected parties
 - Light **and** dark theme — floating Sun/Moon toggle on every page,
   follows OS `prefers-color-scheme` on the first visit, persists user
   overrides; in dark mode the brand recolours to violet + sky-blue

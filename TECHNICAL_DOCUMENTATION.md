@@ -655,14 +655,49 @@ browser. Each endpoint carries `@Operation` with a summary and
 For real-world use, the app would still need:
 
 - Real-time chat between users
-- Push notifications (transactional email is already wired for
-  verification + password reset; in-app/push notifications and
-  marketing-style email digests are still missing)
+- In-app / push notifications and marketing-style email digests
+  (transactional email already covers verification, password
+  reset, password change, account deletion, ride accept / cancel
+  / delete by driver, and admin force-delete — see §13 below)
 - Map integration
 - Driver / passenger ratings
 - Payment gateway
 - Refresh tokens + JWT revocation
-- Mobile app
+- Native mobile app
+
+### 11.3 Localization (i18n)
+
+Backend error messages and email templates are localized for
+**cs** and **en** through Spring `MessageSource`.
+
+- **Configuration:** `I18nConfig.java` registers
+  `ReloadableResourceBundleMessageSource` with basenames
+  `messages` and `ValidationMessages` (UTF-8, no system fallback)
+  and pins `LocalValidatorFactoryBean` to the same source.
+- **Locale resolution chain:** a custom `UserLocaleResolver`
+  picks the locale by priority — (1) the logged-in user's
+  language preference (`UserDetailsImpl.getLanguage()`),
+  (2) the `Accept-Language` header (cs|en accepted),
+  (3) the default `cs`.
+- **Key namespaces:**
+  - `validation.<field>.<rule>` — Bean Validation messages on
+    request DTOs.
+  - `error.<area>.<reason>` — business errors thrown from the
+    service layer.
+  - `email.<event>[.<recipient>].{subject|body}` — email
+    subjects and bodies.
+- **How to add a new locale:** drop
+  `messages_<locale>.properties` and
+  `ValidationMessages_<locale>.properties` into
+  `backend/src/main/resources/`, mirror every key from the
+  existing `cs` / `en` files, and extend `UserLocaleResolver`
+  to whitelist the new tag.
+
+Localized exceptions (`BadRequestException`,
+`ResourceNotFoundException`, `DuplicateResourceException`)
+implement `LocalizedException` and use a static `.of(key, args)`
+factory; `GlobalExceptionHandler` resolves the keys with
+`LocaleContextHolder.getLocale()`.
 
 ## 12. Running the project
 

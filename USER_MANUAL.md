@@ -217,7 +217,7 @@ V seznamu u své jízdy uvidíš ikony **tužka** (úprava) a **koš**
 a *Poznámku*. Počet míst nelze snížit pod počet již obsazených
 míst (jinak bys "vyhodila" stávající pasažéry).
 
-Po smazání se odstraní i případní přijatí spolujezdci.
+Po smazání se odstraní i případní přijatí spolujezdci. Při smazání jízdy obdrží všichni přijatí spolujezdci e-mail s informací o zrušení.
 
 ---
 
@@ -250,12 +250,16 @@ Poptávku můžeš stejně jako nabídku upravovat a mazat.
 2. Klikni **Přijmout**.
 3. Tvé jméno se přidá do seznamu pasažérů a počet obsazených
    míst se zvýší o 1.
+4. Řidič jízdy automaticky obdrží e-mail s informací, že jsi
+   jízdu přijal/a.
 
 ### 10.2 Zrušení
 
 1. U jízdy, kterou jsi přijal/a, uvidíš **Zrušit přijetí**.
 2. Klikem se odstraníš ze seznamu pasažérů a počet obsazených
    míst se sníží o 1.
+3. Řidič obdrží e-mail, že jsi přijetí zrušil/a a jedno místo
+   se uvolnilo.
 
 ### 10.3 Co nelze
 
@@ -270,18 +274,13 @@ Poptávku můžeš stejně jako nabídku upravovat a mazat.
 
 1. V menu klikni **Profil**.
 2. Uvidíš:
-   - Uvítací větu se svým uživatelským jménem,
-   - Sekci **Základní informace** s polemi e-mail, jméno,
-     příjmení, město, role,
-   - Seznam svých rolí (typicky *Uživatel*, u administrátorů
-     navíc *Administrátor*).
+   - Uvítací větu se svým uživatelským jménem.
+   - Sekci **Základní informace** — editovatelná pole **Jméno**, **Příjmení**, **Město** a **Jazyk** (CZ/EN). E-mail a uživatelské jméno jsou jen pro čtení. Tlačítkem **Uložit** uložíš změny.
+   - Sekci **Změna hesla** — vyplň **Aktuální heslo**, **Nové heslo** a **Potvrzení nového hesla**, klikni **Změnit heslo**. Po úspěchu obdržíš na e-mail potvrzení.
+   - Sekci **Moje jízdy** (zobrazí seznam tvých vlastních jízd).
+   - Sekci **Nebezpečná zóna** se smazáním účtu (viz "Jak smažu svůj účet?" v FAQ).
 
-> **Poznámka:** Aktuální verze aplikace **neumožňuje úpravu profilu**
-> ani změnu hesla zevnitř. Tyto funkce jsou na roadmapě. Pokud
-> potřebuješ změnit heslo, použij **Zapomenuté heslo** s vlastní
-> adresou. Pro úpravu osobních údajů nebo smazání účtu kontaktuj
-> administrátora aplikace (kontakt poskytne tvůj system
-> administrátor).
+Po změně jazyka v profilu se přepne nejen UI, ale i obsah e-mailových notifikací a chybových hlášek z backendu (cs/en).
 
 ---
 
@@ -332,13 +331,6 @@ stránce.
 
 ---
 
-**Otázka:** Můžu si změnit heslo, když si ho pamatuju?
-**Odpověď:** V aktuální verzi není funkce "změna hesla z profilu"
-implementovaná. Workaround: použij **Zapomenuté heslo** s vlastní
-e-mailovou adresou.
-
----
-
 **Otázka:** Jak se domluvit s řidičem / spolujezdcem?
 **Odpověď:** Aplikace nezprostředkovává chat. Doporučujeme do
 **Poznámky** uvést kontakt (e-mail, telefon) nebo využít jméno
@@ -347,13 +339,17 @@ v profilu pro vyhledání mimo aplikaci.
 ---
 
 **Otázka:** Jak smažu svůj účet?
-**Odpověď:** Smazání účtu vlastní silou není v aktuální verzi
-implementované. Kontaktuj administrátora.
+**Odpověď:** V Profil → Nebezpečná zóna klikni "Smazat účet" a
+potvrď heslem. Tvé jízdy budou zrušeny a tvoji spolujezdci (resp.
+řidiči, jejichž jízdy jsi přijal/a) dostanou e-mail. Smazání je
+nevratné.
 
 ---
 
 **Otázka:** Funguje aplikace na telefonu?
-**Odpověď:** Ano, UI je responzivní od šířky 320 px.
+**Odpověď:** Aplikaci můžeš plně používat v prohlížeči i na
+mobilním telefonu — UI je responzivní od šířky 320 px. Nativní
+mobilní aplikace je ve vývoji.
 
 ---
 
@@ -366,7 +362,6 @@ implementované. Kontaktuj administrátora.
 | Vidím "Heslo musí mít alespoň 6 znaků" i u silného hesla | Pole *Potvrzení hesla* musí přesně odpovídat poli *Heslo*. Případně mrkni, jestli nemáš zapnutý CapsLock.                                                                       |
 | Tlačítko "Přidat jízdu" se nezobrazuje                   | Musíš být přihlášený/á. Pokud jsi, ale tlačítko se přesto neobjeví, odhlas se a znovu přihlas — tvoje přihlášení už mohlo expirovat.                                            |
 | Aplikace mi neuložila jazyk / motiv                      | Tvůj prohlížeč pravděpodobně blokuje ukládání nastavení (např. anonymní / inkognito režim). V běžném okně to funguje.                                                          |
-| Nemůžu si vzpomenout na e-mail použitý při registraci    | Kontaktuj administrátora.                                                                                                                                                     |
 
 ---
 
