@@ -1,6 +1,7 @@
 package cz.bezcisobe.backend.controller;
 
 import cz.bezcisobe.backend.dto.request.ChangePasswordRequest;
+import cz.bezcisobe.backend.dto.request.DeleteAccountRequest;
 import cz.bezcisobe.backend.dto.request.ForgotPasswordRequest;
 import cz.bezcisobe.backend.dto.request.LoginRequest;
 import cz.bezcisobe.backend.dto.request.RegisterRequest;
@@ -137,5 +138,21 @@ public class AuthController {
     public ResponseEntity<UserResponse> updateProfile(@Valid @RequestBody UpdateProfileRequest req,
                                                        @AuthenticationPrincipal UserDetailsImpl principal) {
         return ResponseEntity.ok(authService.updateProfile(principal.getUsername(), req));
+    }
+
+    @PostMapping("/delete-account")
+    @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Permanently delete the current user's account. Cascades through driver rides, "
+            + "passenger memberships, and verification/reset tokens; notifies affected drivers and passengers by email.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Account deleted"),
+            @ApiResponse(responseCode = "400", description = "Password incorrect",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public ResponseEntity<Void> deleteAccount(@Valid @RequestBody DeleteAccountRequest req,
+                                               @AuthenticationPrincipal UserDetailsImpl principal) {
+        authService.deleteAccount(principal.getUsername(), req.password());
+        return ResponseEntity.noContent().build();
     }
 }

@@ -7,6 +7,7 @@ import cz.bezcisobe.backend.dto.request.UpdateProfileRequest;
 import cz.bezcisobe.backend.dto.response.AuthResponse;
 import cz.bezcisobe.backend.dto.response.UserResponse;
 import cz.bezcisobe.backend.entity.PasswordResetToken;
+import cz.bezcisobe.backend.entity.Ride;
 import cz.bezcisobe.backend.entity.Role;
 import cz.bezcisobe.backend.entity.User;
 import cz.bezcisobe.backend.entity.VerificationToken;
@@ -14,6 +15,7 @@ import cz.bezcisobe.backend.exception.BadRequestException;
 import cz.bezcisobe.backend.exception.DuplicateResourceException;
 import cz.bezcisobe.backend.exception.ResourceNotFoundException;
 import cz.bezcisobe.backend.repository.PasswordResetTokenRepository;
+import cz.bezcisobe.backend.repository.RideRepository;
 import cz.bezcisobe.backend.repository.UserRepository;
 import cz.bezcisobe.backend.repository.VerificationTokenRepository;
 import cz.bezcisobe.backend.security.JwtTokenProvider;
@@ -48,6 +50,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final RideRepository rideRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final UserMapper userMapper;
@@ -226,6 +229,63 @@ public class AuthService {
         if (request.language() != null) user.setLanguage(request.language());
         User saved = userRepository.save(user);
         return userMapper.toResponse(saved);
+    }
+
+    @Transactional
+    public void deleteAccount(String username, String password) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> ResourceNotFoundException.of("error.auth.user_not_found"));
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw BadRequestException.of("error.auth.invalid_current_password");
+        }
+
+        Locale userLocale = Locale.forLanguageTag(user.getLanguage());
+
+        // 1. Driver-rides — notify passengers, then delete
+        List<Ride> driverRides = rideRepository.findAllByUser(user);
+        for (Ride ride : driverRides) {
+            List<User> passengersToNotify = List.copyOf(ride.getPassengers());
+            for (User p : passengersToNotify) {
+                tryEmail(() -> emailService.sendRideDeletedByDriverEmail(
+                        p.getEmail(), p.getUsername(),
+                        user.fullName(), user.getEmail(),
+                        ride.getRace().getName(), ride.getRace().getDate(),
+                        Locale.forLanguageTag(p.getLanguage())));
+            }
+            rideRepository.delete(ride);
+        }
+
+        // 2. Passenger memberships — notify driver, then remove
+        List<Ride> passengerRides = rideRepository.findAllByPassengersContaining(user);
+        for (Ride ride : passengerRides) {
+            ride.getPassengers().remove(user);
+            ride.setOccupiedSeats(ride.getOccupiedSeats() - 1);
+            rideRepository.save(ride);
+            tryEmail(() -> emailService.sendRideAcceptanceCancelledEmail(
+                    ride.getUser().getEmail(), ride.getUser().getUsername(),
+                    user.fullName(), user.getEmail(),
+                    ride.getRace().getName(), ride.getRace().getDate(),
+                    Locale.forLanguageTag(ride.getUser().getLanguage())));
+        }
+
+        // 3. Tokens
+        verificationTokenRepository.deleteAllForUser(user);
+        passwordResetTokenRepository.deleteAllForUser(user);
+
+        // 4. Send account-deleted email BEFORE deleting the user (need email + locale)
+        tryEmail(() -> emailService.sendAccountDeletedEmail(user.getEmail(), userLocale));
+
+        // 5. Delete user
+        userRepository.delete(user);
+        log.info("Account deleted: id={}, username='{}'", user.getId(), user.getUsername());
+    }
+
+    private void tryEmail(Runnable send) {
+        try {
+            send.run();
+        } catch (Exception e) {
+            log.warn("Mail send failed during account deletion: {}", e.getMessage());
+        }
     }
 
     private void issueVerificationToken(User user) {
