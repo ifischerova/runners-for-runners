@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -162,7 +163,7 @@ public class AuthService {
                 .build();
         passwordResetTokenRepository.save(prt);
 
-        emailService.sendPasswordResetEmail(user.getEmail(), token);
+        emailService.sendPasswordResetEmail(user.getEmail(), token, Locale.forLanguageTag(user.getLanguage()));
         log.info("Password-reset email sent to user id={}, username='{}'", user.getId(), user.getUsername());
     }
 
@@ -206,6 +207,6 @@ public class AuthService {
                 .expiresAt(Instant.now().plus(VERIFICATION_TTL_HOURS, ChronoUnit.HOURS))
                 .build();
         verificationTokenRepository.save(vt);
-        emailService.sendVerificationEmail(user.getEmail(), token);
+        emailService.sendVerificationEmail(user.getEmail(), token, Locale.forLanguageTag(user.getLanguage()));
     }
 }
