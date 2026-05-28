@@ -1,6 +1,6 @@
 # Administrátorská příručka
 
-**Aplikace:** Bezci sobě – platforma pro sdílení dopravy mezi běžci
+**Aplikace:** Běžci sobě – platforma pro sdílení dopravy mezi běžci
 **Verze dokumentu:** 1.0
 **Datum:** 2026-05-28
 
@@ -277,7 +277,7 @@ Autentizovaný admin (`management.endpoint.health.show-details=when_authorized`)
 ```json
 {
   "app": {
-    "name": "Bezci sobe backend",
+    "name": "Běžci sobě backend",
     "description": "REST API for the runners' carpooling platform",
     "version": "1.0.0"
   }
@@ -332,7 +332,7 @@ export MAIL_LOG_ONLY=false                  # přepne na reálné posílání
 Po nastavení a restartu backendu uvidíš v logu:
 
 ```
-INFO ... c.b.b.service.EmailService - Email sent to user@example.com (Bezci sobě – ověřte svou e-mailovou adresu)
+INFO ... c.b.b.service.EmailService - Email sent to user@example.com (Běžci sobě – ověřte svou e-mailovou adresu)
 ```
 
 ### 8.3 Co dělat, když e-maily nedorazí

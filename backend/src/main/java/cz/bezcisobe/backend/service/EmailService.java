@@ -29,9 +29,9 @@ public class EmailService {
 
     public void sendVerificationEmail(String to, String token) {
         String link = buildUrl("/verify-email", token);
-        String subject = "Bezci sobě – ověřte svou e-mailovou adresu";
+        String subject = "Běžci sobě – ověřte svou e-mailovou adresu";
         String body = """
-                Vítejte v Bezci sobě!
+                Vítejte v Běžci sobě!
 
                 Pro dokončení registrace prosím ověřte svou e-mailovou adresu kliknutím na následující odkaz:
 
@@ -40,14 +40,14 @@ public class EmailService {
                 Odkaz je platný 24 hodin. Pokud jste se neregistrovali, tento e-mail prostě ignorujte.
 
                 Děkujeme,
-                tým Bezci sobě
+                tým Běžci sobě
                 """.formatted(link);
         send(to, subject, body);
     }
 
     public void sendPasswordResetEmail(String to, String token) {
         String link = buildUrl("/reset-password", token);
-        String subject = "Bezci sobě – obnovení hesla";
+        String subject = "Běžci sobě – obnovení hesla";
         String body = """
                 Obdrželi jsme žádost o obnovení hesla pro váš účet.
 
@@ -57,7 +57,7 @@ public class EmailService {
 
                 Odkaz je platný 1 hodinu. Pokud jste o obnovení nežádali, tento e-mail můžete ignorovat – heslo zůstane beze změny.
 
-                Tým Bezci sobě
+                Tým Běžci sobě
                 """.formatted(link);
         send(to, subject, body);
     }

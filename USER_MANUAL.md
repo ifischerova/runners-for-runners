@@ -1,6 +1,6 @@
 # Uživatelská příručka
 
-**Aplikace:** Bezci sobě – platforma pro sdílení dopravy mezi běžci
+**Aplikace:** Běžci sobě – platforma pro sdílení dopravy mezi běžci
 **Verze dokumentu:** 1.0
 **Datum:** 2026-05-28
 
@@ -30,7 +30,7 @@ uživatele**.
 
 ## 1. O aplikaci
 
-Bezci sobě propojuje běžce, kteří jezdí na české i mezinárodní
+Běžci sobě propojuje běžce, kteří jezdí na české i mezinárodní
 běžecké závody. Jako uživatel můžeš:
 
 - **nabídnout místo v autě** ostatním běžcům (jízda typu OFFER);
@@ -93,9 +93,9 @@ Pro vytvoření nebo přijetí jízdy se musíš zaregistrovat.
 ## 4. Ověření e-mailové adresy
 
 Po registraci ti do schránky přijde e-mail s předmětem
-**"Bezci sobě – ověřte svou e-mailovou adresu"**. Obsah:
+**"Běžci sobě – ověřte svou e-mailovou adresu"**. Obsah:
 
-> Vítejte v Bezci sobě!
+> Vítejte v Běžci sobě!
 >
 > Pro dokončení registrace prosím ověřte svou e-mailovou adresu
 > kliknutím na odkaz uvnitř e-mailu.

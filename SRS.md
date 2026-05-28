@@ -1,6 +1,6 @@
 # Specifikace softwarových požadavků (SRS)
 
-**Projekt:** Bezci sobě – platforma pro sdílení dopravy mezi běžci
+**Projekt:** Běžci sobě – platforma pro sdílení dopravy mezi běžci
 **Verze dokumentu:** 1.0
 **Datum:** 2026-05-28
 **Autor:** Iva Fischerová
@@ -25,13 +25,13 @@
 ### 1.1 Účel dokumentu
 
 Tento dokument popisuje funkční a nefunkční požadavky kladené na webovou
-aplikaci **Bezci sobě**. Slouží jako podklad pro návrh systému (viz
+aplikaci **Běžci sobě**. Slouží jako podklad pro návrh systému (viz
 [SDD.md](SDD.md)), jako referenční bod při implementaci a jako zdroj
 pro akceptační testování.
 
 ### 1.2 Rozsah projektu
 
-Bezci sobě je webová full-stack aplikace, která propojuje běžce
+Běžci sobě je webová full-stack aplikace, která propojuje běžce
 cestující na české běžecké závody. Uživatel může:
 
 - nabídnout svoji jízdu (jako řidič) – kolik míst v autě má volných,
@@ -67,7 +67,7 @@ Není cílem aplikace:
 
 ### 2.1 Perspektiva produktu
 
-Bezci sobě je **samostatná aplikace** (greenfield), nezávisí na žádném
+Běžci sobě je **samostatná aplikace** (greenfield), nezávisí na žádném
 existujícím IS. Skládá se ze tří hlavních komponent:
 
 - **Frontend** – jednostránková aplikace v Reactu.
@@ -388,9 +388,9 @@ Všechny chyby mají jednotný formát:
 
 Backend posílá tyto typy e-mailů (přes `JavaMailSender`):
 
-- **Ověření e-mailu** – předmět "Bezci sobě – ověřte svou e-mailovou
+- **Ověření e-mailu** – předmět "Běžci sobě – ověřte svou e-mailovou
   adresu", odkaz `${APP_URL}/verify-email?token=…`.
-- **Reset hesla** – předmět "Bezci sobě – obnovení hesla", odkaz
+- **Reset hesla** – předmět "Běžci sobě – obnovení hesla", odkaz
   `${APP_URL}/reset-password?token=…`.
 
 V profilu `dev` lze e-maily přepnout na log-only režim

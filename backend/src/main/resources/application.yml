@@ -64,7 +64,7 @@ management:
 
 info:
   app:
-    name: Bezci sobe backend
+    name: Běžci sobě backend
     description: REST API for the runners' carpooling platform
     version: 1.0.0
 

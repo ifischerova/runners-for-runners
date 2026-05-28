@@ -30,10 +30,10 @@ public class OpenApiConfig {
     public OpenAPI bezciSobeOpenApi() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Bezci sobe API")
+                        .title("Běžci sobě API")
                         .version("1.0.0")
                         .description(
-                                "REST API for the Bezci sobe carpooling platform. "
+                                "REST API for the Běžci sobě carpooling platform. "
                                         + "Authenticated endpoints require a JWT obtained from POST /api/auth/login, "
                                         + "passed as `Authorization: Bearer <token>`.")
                         .contact(new Contact().name("Iva Fischerova").email("iva.fischerova@fidoo.com"))

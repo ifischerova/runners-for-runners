@@ -1,11 +1,11 @@
 # Dokument návrhu softwaru (SDD)
 
-**Projekt:** Bezci sobě – platforma pro sdílení dopravy mezi běžci
+**Projekt:** Běžci sobě – platforma pro sdílení dopravy mezi běžci
 **Verze dokumentu:** 1.0
 **Datum:** 2026-05-28
 **Autor:** Iva Fischerová
 
-Tento dokument popisuje **návrh** systému Bezci sobě. Doplňuje
+Tento dokument popisuje **návrh** systému Běžci sobě. Doplňuje
 [SRS.md](SRS.md), který definuje *co* má systém dělat – zde řešíme, *jak*
 to dělá. Pro detailní popis použitých technologií a běhové procesy
 viz [TECHNICAL_DOCUMENTATION.md](TECHNICAL_DOCUMENTATION.md)
@@ -31,7 +31,7 @@ viz [TECHNICAL_DOCUMENTATION.md](TECHNICAL_DOCUMENTATION.md)
 
 ## 1. Architektura systému
 
-Bezci sobě je třívrstvá webová aplikace:
+Běžci sobě je třívrstvá webová aplikace:
 
 ```mermaid
 flowchart LR

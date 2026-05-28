@@ -15,7 +15,7 @@
     <artifactId>backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>bezci-sobe-backend</name>
-    <description>Backend for Bezci Sobe carpooling platform</description>
+    <description>Backend for Běžci sobě carpooling platform</description>
 
     <properties>
         <java.version>17</java.version>
