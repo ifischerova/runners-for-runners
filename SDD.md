@@ -339,7 +339,7 @@ erDiagram
 | `AuthService`           | Service        | Registrace, přihlášení, e-mail verifikace, reset hesla. Centralizovaná autentizační logika. |
 | `EmailService`          | Service        | Wrapper nad `JavaMailSender`. Skládá HTML/text těla, sestavuje URL z `APP_URL`.          |
 | `RideService`           | Service        | CRUD jízd, accept/cancel, validace vlastnictví, blok pro proběhlé závody (`race.date < dnes` → `BadRequestException`). |
-| `RaceService`           | Service        | Listing + paginované hledání závodů.                                                     |
+| `RaceService`           | Service        | Listing + paginované hledání závodů. `getAllRaces()` deleguje na `RaceRepository.findAllByDateGreaterThanEqualOrderByDateAsc(today)`, kde `today` je `LocalDate.now(ZoneId.of("Europe/Prague"))`. Filtr proběhlých závodů se aplikuje na databázové úrovni; klient si tak nikdy nemusí stahovat ani filtrovat staré závody. Časové pásmo `Europe/Prague` je konzistentní s ostatními past-race kontrolami v `RideService`. |
 | `AdminService`          | Service        | Administrátorské operace nad uživateli a jízdami.                                        |
 | `JwtTokenProvider`      | Security       | Generování a parsing JWT, validace podpisu a expirace.                                   |
 | `JwtAuthenticationFilter` | Filter        | Pro každý request načte JWT z hlavičky a vyplní SecurityContext.                          |
@@ -755,6 +755,30 @@ by se přidal `RequireAuth` wrapper.)
    zprávy.
 3. **Verify / forgot / reset endpointy** neprozradí, jestli e-mail
    existuje – z UX pohledu vždy ukazujeme stejné potvrzení.
+
+### 7.5 Hlášky a potvrzovací dialogy
+
+Hláška o úspěchu/chybě se zobrazuje jako fixní toast banner v horní
+části stránky (auto-dismiss po 4 s, `role="status"` pro úspěch a
+`role="alert"` pro chybu). Potvrzovací dialogy (smazání jízdy, zrušení
+přijetí) používají vlastní modální komponentu s `aria-modal` +
+`aria-labelledby`; backdrop click zavírá modal pouze pokud neprobíhá
+API volání, tlačítka jsou disabled během letu, aby uživatel nemohl
+akci spustit dvakrát. Texty hlášek i tlačítek pocházejí z i18n
+slovníku (cs/en); native `window.alert` / `window.confirm` se v UI
+nikde nepoužívají.
+
+### 7.6 Robustnost — idempotentní `useEffect`
+
+`VerifyEmailPage` volá `apiService.verifyEmail(token)` z `useEffect`
+přesně jednou na načtení stránky. Protože React 18 Strict Mode v dev
+režimu mountuje komponenty dvakrát, je samotný API call obalený
+strážním `useRef` flagem — bez něj by druhý mount spotřeboval token
+podruhé a uživatel by viděl chybu "token už byl použit", přestože je
+jeho účet úspěšně ověřen. Produkční build Strict Mode dvojnásobný
+mount nedělá, takže chování zůstává jednovolací; strážní pattern je
+ale obecně užitečný pro jakýkoli one-shot effect, který má vedlejší
+efekty na backendu.
 
 ---
 

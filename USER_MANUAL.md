@@ -169,20 +169,33 @@ na domovskou stránku a smaže tvůj přihlašovací token z prohlížeče.
 ## 7. Procházení závodů
 
 1. V menu klikni **Závody**.
-2. Zobrazí se seznam závodů. U každého vidíš:
+2. Zobrazí se seznam **nadcházejících** závodů, seřazený od nejbližšího data
+   (závody, které už proběhly, se v seznamu nezobrazují — viz FAQ).
+   Dnešní závody zůstávají viditelné celý den a ze seznamu zmizí
+   automaticky až po půlnoci (časové pásmo Europe/Prague).
+3. U každého závodu vidíš:
    - Název a místo závodu,
    - Datum a čas startu,
    - Délku tratě (např. 5K, 10K, půlmaraton, maraton, ultra),
    - Typ tratě (silnice, terén, atd.),
    - Odkaz na oficiální web závodu (pokud je k dispozici).
-3. Pro vyhledání zadej do horního filtru:
+4. Pro vyhledání zadej do horního filtru:
    - **Text** (název nebo místo),
    - **Datum od / do**,
    - **Typ tratě** (filtr).
-4. Seznam je stránkovaný – pod ním jsou čísla stránek.
-5. Klikem na závod se rozbalí jeho detail a seznam jízd.
+5. Seznam je stránkovaný – pod ním jsou čísla stránek.
+6. Klikem na závod se rozbalí jeho detail a seznam jízd.
 
 ---
+
+> **Hlášky a potvrzení v sekcích 8–10:** Aplikace nepoužívá nativní
+> dialogová okna prohlížeče. Úspěšné akce (uložení jízdy, přijetí,
+> zrušení, smazání) hlásí **zelený banner** v horní části stránky;
+> chyby se objeví v **červeném banneru**. Banner sám zmizí po cca
+> čtyřech sekundách. Pro nevratné akce (smazání jízdy, zrušení
+> přijetí) aplikace zobrazí vlastní **potvrzovací okno** uprostřed
+> obrazovky — během odesílání jsou tlačítka zablokovaná, takže nelze
+> akci omylem spustit dvakrát.
 
 ## 8. Nabídka jízdy (OFFER)
 
@@ -313,6 +326,13 @@ Po změně jazyka v profilu se přepne nejen UI, ale i obsah e-mailových notifi
 **Otázka:** Musím se registrovat, abych si mohl/a procházet závody?
 **Odpověď:** Ne. Anonymní návštěvník vidí katalog závodů i seznam
 jízd. Pro vytvoření / přijetí jízdy je registrace nutná.
+
+---
+
+**Otázka:** Proč nevidím závody, které už proběhly?
+**Odpověď:** Seznam závodů zobrazuje pouze nadcházející závody (od
+dnešního dne včetně). Závody, které proběhly, se ze seznamu automaticky
+skrývají, abys měl/a přehled jen o relevantních možnostech.
 
 ---
 

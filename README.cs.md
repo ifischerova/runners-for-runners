@@ -41,6 +41,12 @@ filter/provider/UserDetails), `validation/` (vlastní pravidlo
 
 - Procházení českých běžeckých závodů; filtrování podle jména/místa/data se
   stránkováním
+- Seznam závodů zobrazuje pouze nadcházející závody (od dnešního dne
+  včetně, časové pásmo Europe/Prague), seřazené vzestupně podle data;
+  proběhlé závody se filtrují přímo na úrovni DB, takže klient nikdy
+  netahá zbytečná data
+- In-app toasty a potvrzovací modální okna (žádné nativní
+  prohlížečové `alert` / `confirm`); všechny texty lokalizované cs/en
 - Vytváření, úprava, přijímání a rušení nabídek (OFFER) a poptávek (REQUEST)
 - Registrace uživatelů s **povinným ověřením e-mailu** (token se posílá
   SMTP a přihlášení je blokované, dokud uživatel neklikne na odkaz)

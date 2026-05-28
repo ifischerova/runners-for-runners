@@ -198,9 +198,14 @@ Soubor `apiService.ts` je tenký REST klient nad `fetch`, který volá backend n
 
 **Závody:**
 
-- `getRaces()` – GET `/races`
+- `getRaces()` – GET `/races`. Backend filtruje proběhlé závody přímo
+  na úrovni DB přes `RaceRepository.findAllByDateGreaterThanEqualOrderByDateAsc(today)`,
+  kde `today = LocalDate.now(ZoneId.of("Europe/Prague"))`, takže
+  frontend dropdown dostane jen nadcházející závody seřazené
+  vzestupně podle data; dnešní závody zůstávají viditelné až do
+  půlnoci v Europe/Prague
 - `getRaceById(id)` – GET `/races/{id}`
-- backend navíc nabízí `GET /races/search?q=&from=&trackTypeId=&page=&size=&sort=` se stránkováním a filtry — komplexní JPQL dotaz definovaný přes `@Query` na `RaceRepository`.
+- backend navíc nabízí `GET /races/search?q=&from=&trackTypeId=&page=&size=&sort=` se stránkováním a filtry — komplexní JPQL dotaz definovaný přes `@Query` na `RaceRepository`. Tento endpoint má vlastní nezávislý filtr `from` a automaticky upcoming-only filtr **neaplikuje**.
 
 **Jízdy (rides):**
 
@@ -459,6 +464,19 @@ Aplikace funguje na všech zařízeních:
 - **Přijetí nabídky**: Přihlášený uživatel může přijmout nabídku od jiného řidiče
 - **Zrušení přijetí**: Můžu zrušit, že jedu s někým
 
+**Hlášky a potvrzovací dialogy:**
+
+Hlášky o úspěchu / chybě pro vytvoření / úpravu / přijetí / zrušení /
+smazání jízdy se renderují jako fixní in-app toast banner v horní
+části stránky (auto-dismiss po 4 s, emerald barva pro úspěch
+s `role="status"`, červená pro chybu s `role="alert"`). Destruktivní
+akce (smazání jízdy, zrušení přijetí) používají vlastní potvrzovací
+modální komponentu (`aria-modal` + `aria-labelledby`, backdrop click
+zavírá modal pouze pokud neprobíhá API volání, obě tlačítka jsou
+disabled během volání, aby nešlo akci spustit dvakrát). Nativní
+`window.alert` / `window.confirm` se nepoužívají; všechny texty
+pocházejí z cs/en i18n slovníku (`races.alert.*` plus `common.confirm`).
+
 ### 8.2 Uživatelské účty
 
 **Testovací účty (POUZE PRO VÝVOJ / DEMO — před produkčním nasazením
@@ -534,6 +552,15 @@ Když se nepřihlášený uživatel pokusí dostat na chráněnou stránku, pře
 - **React.StrictMode**: Odhaluje potenciální problémy během vývoje
 - **Správný state management**: Minimalizace zbytečných re-renderů
 - **useEffect dependencies**: Správně nastavené závislosti
+- **Ochrana před double-mountem ve Strict Mode pro one-shot effecty**:
+  Stránky, které z `useEffect` spouští jedno side-efektové volání na
+  backend (aktuálně `VerifyEmailPage`, která spotřebovává jednorázový
+  verifikační token), si toto volání obalují strážním `useRef` flagem.
+  Bez něj by React 18 Strict Mode v dev režimu komponentu mountnul
+  dvakrát, volání proběhlo dvakrát a uživateli by se po druhém pokusu
+  objevila chyba „token už byl použit". Produkční build dvojnásobný
+  mount nedělá, takže stráž je v něm no-op — je to obecný defensive
+  pattern pro jakýkoli one-shot API call řízený z `useEffect`.
 
 ## 10. Bezpečnost
 

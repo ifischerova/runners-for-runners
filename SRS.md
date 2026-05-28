@@ -150,6 +150,7 @@ Konvence: **FRn** = funkční požadavek, **Pn** = priorita
 | FR13  | P1 | Uživatel může vyhledávat závody podle názvu, místa a data, kombinovat filtry.                                                                                          |
 | FR14  | P1 | Výsledky jsou stránkované (default 20 záznamů na stránku).                                                                                                             |
 | FR15  | P2 | Systém zobrazí detail závodu (datum, čas, místo, délka tratě, typ tratě, certifikace, odkaz na web).                                                                   |
+| FR38  | P1 | Seznam závodů na hlavní stránce zobrazuje pouze nadcházející závody (datum >= dnes, v časovém pásmu Europe/Prague), seřazené vzestupně podle data. Závody se ze seznamu odstraňují automaticky po půlnoci. |
 
 ### 3.3 Jízdy (OFFER a REQUEST)
 
@@ -181,6 +182,7 @@ Konvence: **FRn** = funkční požadavek, **Pn** = priorita
 | FR30  | P3 | UI je dvojjazyčné (čeština + angličtina), volba se persistuje v `localStorage`.                                                                                        |
 | FR31  | P3 | UI má světlý a tmavý motiv, volba se persistuje v `localStorage` a při první návštěvě respektuje OS `prefers-color-scheme`.                                            |
 | FR32  | P3 | UI je responzivní (mobil, tablet, desktop).                                                                                                                            |
+| FR39  | P2 | UI používá pro potvrzovací dialogy a hlášky o úspěchu/chybě nativní in-app komponenty (modální okno, toast banner) namísto nativních prohlížečových `alert()` / `confirm()`. Hlášky jsou plně lokalizované (cs/en). |
 
 ---
 
