@@ -55,7 +55,7 @@ oficiální registrace na závod.
    - **Závody** – katalog závodů,
    - **Organizátoři** – info pro pořadatele.
 4. V pravém horním rohu jsou:
-   - **Vlajka** pro přepnutí jazyka (🇨🇿 ↔ 🇬🇧),
+   - **Vlajka** pro přepnutí jazyka (čeština ↔ angličtina),
    - **Slunce/Měsíc** pro přepnutí motivu (světlý ↔ tmavý),
    - **Přihlásit** a **Registrace** (dokud nejsi přihlášený).
 

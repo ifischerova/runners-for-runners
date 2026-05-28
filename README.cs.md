@@ -209,7 +209,7 @@ a neočekávané pády na ERROR (`GlobalExceptionHandler#handleUnexpected`).
 
 ## Testovací účty (seed)
 
-> ⚠️ **POUZE PRO VÝVOJ / DEMO** — účty uvedené níže existují výhradně
+> **POUZE PRO VÝVOJ / DEMO** — účty uvedené níže existují výhradně
 > pro účely lokálního vývoje a obhajoby školního projektu. Jsou
 > seedované Flyway migracemi V3/V5/V9 a jejich hesla jsou zveřejněna
 > v tomto README. **Před jakýmkoli produkčním nasazením je nutné

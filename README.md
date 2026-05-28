@@ -207,7 +207,7 @@ at ERROR (`GlobalExceptionHandler#handleUnexpected`).
 
 ## Test accounts (seed)
 
-> ⚠️ **DEV / DEMO ONLY** — the accounts listed below exist only to make
+> **DEV / DEMO ONLY** — the accounts listed below exist only to make
 > local development and the academic defence walkthrough possible. They
 > are seeded by Flyway migrations V3/V5/V9 and their passwords are
 > documented in this README. **Before any non-development deployment,
