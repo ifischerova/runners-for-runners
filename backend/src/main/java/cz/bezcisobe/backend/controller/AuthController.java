@@ -1,7 +1,10 @@
 package cz.bezcisobe.backend.controller;
 
+import cz.bezcisobe.backend.dto.request.ForgotPasswordRequest;
 import cz.bezcisobe.backend.dto.request.LoginRequest;
 import cz.bezcisobe.backend.dto.request.RegisterRequest;
+import cz.bezcisobe.backend.dto.request.ResendVerificationRequest;
+import cz.bezcisobe.backend.dto.request.ResetPasswordRequest;
 import cz.bezcisobe.backend.dto.response.AuthResponse;
 import cz.bezcisobe.backend.dto.response.ErrorResponse;
 import cz.bezcisobe.backend.dto.response.UserResponse;
@@ -25,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@Tag(name = "Auth", description = "Login, registration, and current-user introspection")
+@Tag(name = "Auth", description = "Login, registration, email verification, password reset")
 public class AuthController {
 
     private final AuthService authService;
@@ -36,6 +39,8 @@ public class AuthController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Authentication succeeded"),
             @ApiResponse(responseCode = "401", description = "Invalid credentials",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Account exists but email not verified",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
@@ -44,14 +49,54 @@ public class AuthController {
 
     @PostMapping("/register")
     @SecurityRequirements // public
-    @Operation(summary = "Register a new user")
+    @Operation(summary = "Register a new user; sends a verification email")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "User created"),
+            @ApiResponse(responseCode = "201", description = "User created — verification email sent"),
             @ApiResponse(responseCode = "400", description = "Validation error"),
             @ApiResponse(responseCode = "409", description = "Username or email already taken")
     })
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
+    }
+
+    @GetMapping("/verify-email")
+    @SecurityRequirements // public
+    @Operation(summary = "Verify an email address using the token from the verification mail")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Email verified"),
+            @ApiResponse(responseCode = "400", description = "Token missing, expired, or already used")
+    })
+    public ResponseEntity<Void> verifyEmail(@RequestParam("token") String token) {
+        authService.verifyEmail(token);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/resend-verification")
+    @SecurityRequirements // public
+    @Operation(summary = "Re-send the verification email. Always returns 204 — never leaks whether the email exists.")
+    public ResponseEntity<Void> resendVerification(@Valid @RequestBody ResendVerificationRequest request) {
+        authService.resendVerification(request.email());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/forgot-password")
+    @SecurityRequirements // public
+    @Operation(summary = "Request a password-reset email. Always returns 204 — never leaks whether the email exists.")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.requestPasswordReset(request.email());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reset-password")
+    @SecurityRequirements // public
+    @Operation(summary = "Set a new password using the token from the reset mail")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Password updated"),
+            @ApiResponse(responseCode = "400", description = "Token missing, expired, or password too short")
+    })
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.token(), request.password());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/me")

@@ -2,6 +2,13 @@ spring:
   jpa:
     show-sql: true
 
+# Default to log-only mail in dev so the backend boots without SMTP credentials.
+# Set MAIL_LOG_ONLY=false and provide MAIL_USERNAME / MAIL_PASSWORD (Mailtrap
+# sandbox works out of the box) to actually deliver the verification + reset emails.
+app:
+  mail:
+    log-only: ${MAIL_LOG_ONLY:true}
+
 logging:
   level:
     cz.bezcisobe: DEBUG

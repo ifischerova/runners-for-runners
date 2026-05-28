@@ -24,10 +24,19 @@ function authHeaders(): Record<string, string> {
   return headers;
 }
 
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+    this.name = 'ApiError';
+  }
+}
+
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: 'Chyba serveru' }));
-    throw new Error(body.message || `HTTP ${res.status}`);
+    throw new ApiError(body.message || `HTTP ${res.status}`, res.status);
   }
   return res.json();
 }
@@ -56,6 +65,52 @@ export const apiService = {
       body: JSON.stringify({ username, email, password }),
     });
     return handleResponse<User>(res);
+  },
+
+  verifyEmail: async (token: string): Promise<void> => {
+    const res = await fetch(`${API_BASE}/auth/verify-email?token=${encodeURIComponent(token)}`, {
+      method: 'GET',
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ message: 'Chyba serveru' }));
+      throw new ApiError(body.message || `HTTP ${res.status}`, res.status);
+    }
+  },
+
+  resendVerification: async (email: string): Promise<void> => {
+    const res = await fetch(`${API_BASE}/auth/resend-verification`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ message: 'Chyba serveru' }));
+      throw new ApiError(body.message || `HTTP ${res.status}`, res.status);
+    }
+  },
+
+  forgotPassword: async (email: string): Promise<void> => {
+    const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ message: 'Chyba serveru' }));
+      throw new ApiError(body.message || `HTTP ${res.status}`, res.status);
+    }
+  },
+
+  resetPassword: async (token: string, password: string): Promise<void> => {
+    const res = await fetch(`${API_BASE}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ message: 'Chyba serveru' }));
+      throw new ApiError(body.message || `HTTP ${res.status}`, res.status);
+    }
   },
 
   logout: (): void => {

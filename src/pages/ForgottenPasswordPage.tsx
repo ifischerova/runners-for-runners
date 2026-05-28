@@ -1,7 +1,7 @@
-import { User } from '@/types';
 import { useState, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, KeyRound } from 'lucide-react';
+import { apiService } from '../services/apiService';
 import { useTranslation } from '../contexts/LanguageContext';
 
 export const ForgottenPasswordPage = () => {
@@ -16,7 +16,6 @@ export const ForgottenPasswordPage = () => {
     setError('');
     setIsLoading(true);
 
-    // Client-side validation
     if (!email) {
       setError(t('auth.forgot.error.emailRequired'));
       setIsLoading(false);
@@ -30,25 +29,13 @@ export const ForgottenPasswordPage = () => {
       return;
     }
 
-    // Simulate API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Check if user exists (mock check using localStorage)
-      const users: Array<User> = JSON.parse(localStorage.getItem('users') || '[]');
-      const userExists = users.some((user: User) => user.email === email);
-
-      if (!userExists) {
-        setError(t('auth.forgot.error.notFound'));
-        setIsLoading(false);
-        return;
-      }
-
-      // In a real app, this would send a password reset email
-      // For now, just show success message
+      await apiService.forgotPassword(email);
+      // The backend always responds the same way regardless of whether the email is
+      // registered — show the generic confirmation so we don't leak account state.
       setIsSubmitted(true);
-    } catch {
-      setError(t('auth.forgot.error.generic'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('auth.forgot.error.generic'));
     } finally {
       setIsLoading(false);
     }

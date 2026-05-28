@@ -253,6 +253,52 @@ const cs = {
   'auth.forgot.noAccount': 'Ještě nemáte účet?',
   'auth.forgot.registerLink': 'Zaregistrujte se',
 
+  // ===== auth: registration confirmation =====
+  'auth.register.sent.title': 'Zkontroluj si e-mail!',
+  'auth.register.sent.body.before': 'Poslali jsme ti ověřovací odkaz na adresu',
+  'auth.register.sent.body.after': '. Klikni na něj a dokonči registraci.',
+  'auth.register.sent.spam': 'Pokud zprávu nenajdeš, mrkni i do složky spam.',
+  'auth.register.sent.back': 'Zpět na přihlášení',
+  'auth.register.sent.resend': 'Poslat odkaz znovu',
+  'auth.register.sent.resending': 'Odesílám...',
+  'auth.register.sent.resent': 'Pokud byl účet vytvořen, poslali jsme ti nový ověřovací odkaz.',
+
+  // ===== auth: verify email =====
+  'auth.verify.title.verifying': 'Ověřujeme tvůj e-mail...',
+  'auth.verify.title.success': 'E-mail ověřen!',
+  'auth.verify.title.failure': 'Ověření se nepodařilo',
+  'auth.verify.body.verifying': 'Chvilku strpení, ověřujeme tvůj odkaz.',
+  'auth.verify.body.success': 'Tvůj účet je aktivní. Můžeš se přihlásit a začít plánovat cesty.',
+  'auth.verify.body.missingToken': 'Odkaz neobsahuje ověřovací token.',
+  'auth.verify.cta.login': 'Pokračovat na přihlášení',
+  'auth.verify.cta.resend': 'Poslat nový odkaz',
+  'auth.verify.resend.placeholder': 'tvuj@email.cz',
+  'auth.verify.resend.sent': 'Pokud je e-mail registrovaný, právě jsme ti poslali nový ověřovací odkaz.',
+
+  // ===== auth: login blocked by verification =====
+  'auth.login.error.notVerified': 'Účet zatím není ověřen. Zkontroluj e-mail nebo si nech poslat nový odkaz.',
+  'auth.login.resendVerification': 'Poslat nový ověřovací odkaz',
+  'auth.login.resending': 'Odesílám...',
+  'auth.login.resendSent': 'Pokud je e-mail registrovaný, poslali jsme ti nový ověřovací odkaz.',
+  'auth.login.resendNeedEmail': 'Pro znovuzaslání odkazu uveď e-mail.',
+
+  // ===== auth: reset password =====
+  'auth.reset.title': 'Nastavit nové heslo',
+  'auth.reset.subtitle': 'Zadejte nové heslo pro svůj účet.',
+  'auth.reset.password.label': 'Nové heslo *',
+  'auth.reset.password.placeholder': 'Minimálně 6 znaků',
+  'auth.reset.confirm.label': 'Potvrdit nové heslo *',
+  'auth.reset.confirm.placeholder': 'Zadej heslo znovu',
+  'auth.reset.submit': 'Uložit nové heslo',
+  'auth.reset.submitting': 'Ukládám...',
+  'auth.reset.error.passwordRequired': 'Heslo je povinné',
+  'auth.reset.error.passwordShort': 'Heslo musí mít alespoň 6 znaků',
+  'auth.reset.error.passwordsMismatch': 'Hesla se neshodují',
+  'auth.reset.error.missingToken': 'Odkaz neobsahuje token pro obnovení hesla.',
+  'auth.reset.success.title': 'Heslo nastaveno',
+  'auth.reset.success.body': 'Tvoje heslo bylo úspěšně změněno. Můžeš se přihlásit.',
+  'auth.reset.success.cta': 'Přejít na přihlášení',
+
   // ===== profile =====
   'profile.title': 'Můj profil',
   'profile.welcome': 'Vítej zpět, {name}!',
@@ -542,6 +588,52 @@ const en: Record<keyof typeof cs, string> = {
   'auth.forgot.signInLink': 'Sign in',
   'auth.forgot.noAccount': "Don't have an account yet?",
   'auth.forgot.registerLink': 'Register',
+
+  // ===== auth: registration confirmation =====
+  'auth.register.sent.title': 'Check your inbox!',
+  'auth.register.sent.body.before': "We've sent a verification link to",
+  'auth.register.sent.body.after': '. Click it to finish creating your account.',
+  'auth.register.sent.spam': "Can't find it? Take a look in your spam folder too.",
+  'auth.register.sent.back': 'Back to sign in',
+  'auth.register.sent.resend': 'Send the link again',
+  'auth.register.sent.resending': 'Sending...',
+  'auth.register.sent.resent': "If the account exists, we've just sent a new verification link.",
+
+  // ===== auth: verify email =====
+  'auth.verify.title.verifying': 'Verifying your email...',
+  'auth.verify.title.success': 'Email verified!',
+  'auth.verify.title.failure': 'Verification failed',
+  'auth.verify.body.verifying': 'One moment — checking your link.',
+  'auth.verify.body.success': 'Your account is active. You can now sign in and start planning trips.',
+  'auth.verify.body.missingToken': 'This link is missing a verification token.',
+  'auth.verify.cta.login': 'Continue to sign in',
+  'auth.verify.cta.resend': 'Send a new link',
+  'auth.verify.resend.placeholder': 'you@email.com',
+  'auth.verify.resend.sent': "If that email is registered, we've just sent a new verification link.",
+
+  // ===== auth: login blocked by verification =====
+  'auth.login.error.notVerified': "Your account isn't verified yet. Check your email or request a new link.",
+  'auth.login.resendVerification': 'Send a new verification link',
+  'auth.login.resending': 'Sending...',
+  'auth.login.resendSent': "If that email is registered, we've just sent a new verification link.",
+  'auth.login.resendNeedEmail': 'Enter the email tied to your account to resend the link.',
+
+  // ===== auth: reset password =====
+  'auth.reset.title': 'Set a new password',
+  'auth.reset.subtitle': 'Choose a new password for your account.',
+  'auth.reset.password.label': 'New password *',
+  'auth.reset.password.placeholder': 'At least 6 characters',
+  'auth.reset.confirm.label': 'Confirm new password *',
+  'auth.reset.confirm.placeholder': 'Re-enter the password',
+  'auth.reset.submit': 'Save new password',
+  'auth.reset.submitting': 'Saving...',
+  'auth.reset.error.passwordRequired': 'Password is required',
+  'auth.reset.error.passwordShort': 'Password must be at least 6 characters long',
+  'auth.reset.error.passwordsMismatch': "Passwords don't match",
+  'auth.reset.error.missingToken': 'This link is missing a reset token.',
+  'auth.reset.success.title': 'Password updated',
+  'auth.reset.success.body': 'Your password has been changed successfully. You can now sign in.',
+  'auth.reset.success.cta': 'Go to sign in',
 
   // ===== profile =====
   'profile.title': 'My profile',

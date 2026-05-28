@@ -13,7 +13,17 @@ spring:
   flyway:
     enabled: false
 
+  # Dummy SMTP target so JavaMailSender autoconfigures. Tests use @MockBean for
+  # services that actually call EmailService, so no real connection is opened.
+  mail:
+    host: localhost
+    port: 25
+
 app:
   jwt:
     secret: testSecretKeyThatIsLongEnoughForHS256AlgorithmInTests2026
     expiration-ms: 86400000
+  url: http://localhost:5173
+  mail:
+    from: no-reply@bezcisobe.test
+    log-only: true

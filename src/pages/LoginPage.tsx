@@ -1,13 +1,17 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Footprints } from 'lucide-react';
+import { Footprints, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
+import { ApiError, apiService } from '../services/apiService';
 
 export const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resendEmail, setResendEmail] = useState('');
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -16,9 +20,10 @@ export const LoginPage = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+    setNeedsVerification(false);
+    setResendState('idle');
     setIsLoading(true);
 
-    // Client-side validation
     if (!username || !password) {
       setError(t('auth.login.error.allRequired'));
       setIsLoading(false);
@@ -35,9 +40,29 @@ export const LoginPage = () => {
       await login({ username, password });
       navigate('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('auth.login.error.failed'));
+      if (err instanceof ApiError && err.status === 403) {
+        setNeedsVerification(true);
+        setError(t('auth.login.error.notVerified'));
+      } else {
+        setError(err instanceof Error ? err.message : t('auth.login.error.failed'));
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!resendEmail) {
+      setError(t('auth.login.resendNeedEmail'));
+      return;
+    }
+    setResendState('sending');
+    try {
+      await apiService.resendVerification(resendEmail);
+    } catch {
+      // resend-verification never reveals account state — swallow client errors too
+    } finally {
+      setResendState('sent');
     }
   };
 
@@ -58,6 +83,39 @@ export const LoginPage = () => {
           {error && (
             <div className="bg-red-50 border-2 border-red-300 text-red-700 dark:bg-red-950/40 dark:border-red-800 dark:text-red-200 px-4 py-3 rounded-xl animate-slide-down">
               <span>{error}</span>
+            </div>
+          )}
+
+          {needsVerification && (
+            <div className="bg-amber-50 border-2 border-amber-300 text-amber-900 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-100 px-4 py-4 rounded-xl space-y-3">
+              {resendState === 'sent' ? (
+                <p className="text-sm flex items-start gap-2">
+                  <Mail size={18} className="mt-0.5 flex-shrink-0" />
+                  {t('auth.login.resendSent')}
+                </p>
+              ) : (
+                <>
+                  <input
+                    type="email"
+                    value={resendEmail}
+                    onChange={(e) => setResendEmail(e.target.value)}
+                    className="form-input-custom"
+                    placeholder={t('auth.verify.resend.placeholder')}
+                    autoComplete="email"
+                    disabled={resendState === 'sending'}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={resendState === 'sending' || !resendEmail}
+                    className="w-full btn-accent-custom disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {resendState === 'sending'
+                      ? t('auth.login.resending')
+                      : t('auth.login.resendVerification')}
+                  </button>
+                </>
+              )}
             </div>
           )}
 

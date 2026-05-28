@@ -42,7 +42,10 @@ constraint), `exception/` (typed exceptions + global handler).
 
 - Browse Czech running races; filter by name/place/date with pagination
 - Create, update, accept, and cancel ride OFFERs and REQUESTs
-- User registration, login, and JWT-protected actions
+- User registration with **mandatory email verification** (token emailed via
+  SMTP, login blocked until the user clicks the link)
+- **Forgotten-password reset** via emailed one-hour token
+- Login and JWT-protected actions
 - Two roles: `ROLE_USER` and `ROLE_ADMIN`; admin-only endpoints enforced via
   `@PreAuthorize` and URL filter (defence in depth)
 - Custom cross-field validation for ride creation (`@ValidRideRequest`)
@@ -93,11 +96,13 @@ CREATE DATABASE bezcisobe;
 ```
 
 Flyway creates the schema and seeds reference data, races, users, and sample
-rides automatically on first run via migrations `V1`–`V9` (V5/V6 fill the
+rides automatically on first run via migrations `V1`–`V10` (V5/V6 fill the
 2026 calendar from a public race scraper, V7 patches a ride-destination
 bug in earlier seed data, V8 removes the admin account from the carpool
 rides, V9 adds 10 international users with rides so the ride list visibly
-mixes Czech and non-Czech runners).
+mixes Czech and non-Czech runners, V10 adds the `email_verified` column
+and the `verification_tokens` / `password_reset_tokens` tables, and
+backfills all seed users to verified so the test accounts keep working).
 
 ### Run
 
@@ -108,12 +113,39 @@ mvn test                # JUnit 5 against in-memory H2 (no Postgres needed)
 mvn spring-boot:run     # API on http://localhost:8080
 ```
 
+### Email delivery (verification + password reset)
+
+Both flows use `spring-boot-starter-mail`. By default the `dev` profile runs
+in **log-only** mode: the email body and the click-through link are dumped
+to the backend console so you can test the full flow without any SMTP
+credentials.
+
+To actually deliver mail, point the backend at an SMTP provider — a
+Mailtrap sandbox works out of the box:
+
+```bash
+# 1) Sign up at mailtrap.io → Sandbox → Email Testing → "Show credentials"
+# 2) Export the SMTP details (defaults already match Mailtrap sandbox)
+export MAIL_USERNAME=<your-mailtrap-user>
+export MAIL_PASSWORD=<your-mailtrap-pass>
+export MAIL_LOG_ONLY=false
+# Optional overrides — defaults shown below
+# export MAIL_HOST=sandbox.smtp.mailtrap.io
+# export MAIL_PORT=2525
+# export MAIL_FROM=no-reply@bezcisobe.local
+# export APP_URL=http://localhost:5173   # base URL used in the email link
+```
+
 ### REST surface
 
 | Endpoint                              | Method | Auth         | Purpose                                   |
 | ------------------------------------- | ------ | ------------ | ----------------------------------------- |
-| `/api/auth/register`                  | POST   | public       | Create account                            |
-| `/api/auth/login`                     | POST   | public       | Issue JWT                                 |
+| `/api/auth/register`                  | POST   | public       | Create account; sends verification email  |
+| `/api/auth/verify-email?token=`       | GET    | public       | Verify the account via token from email   |
+| `/api/auth/resend-verification`       | POST   | public       | Re-send the verification email (silent)   |
+| `/api/auth/forgot-password`           | POST   | public       | Trigger password-reset email (silent)     |
+| `/api/auth/reset-password`            | POST   | public       | Set a new password using a reset token    |
+| `/api/auth/login`                     | POST   | public       | Issue JWT (blocked until email verified)  |
 | `/api/auth/me`                        | GET    | bearer       | Current user                              |
 | `/api/races`                          | GET    | public       | List all races                            |
 | `/api/races/search`                   | GET    | public       | Paginated search by name/place/date       |
@@ -216,6 +248,12 @@ The seed BCrypt hashes were regenerated against
 `BCryptPasswordEncoder` and self-verified — `mvn test
 -Dtest=BCryptHashValidationTest` will fail loudly if a hash drifts from
 its password.
+
+All seed accounts above are backfilled to `email_verified = true` in
+migration `V10`, so they can sign in directly without going through the
+email-verification step. Brand-new accounts created via `POST /api/auth/register`
+are NOT pre-verified — they must click the link sent to their inbox before
+login succeeds.
 
 ## Documentation
 

@@ -16,12 +16,14 @@ public class UserDetailsImpl implements UserDetails {
     private final UUID id;
     private final String username;
     private final String password;
+    private final boolean emailVerified;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public UserDetailsImpl(User user) {
         this.id = user.getId();
         this.username = user.getUsername();
         this.password = user.getPassword();
+        this.emailVerified = user.isEmailVerified();
         this.authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.name()))
                 .toList();
@@ -33,6 +35,8 @@ public class UserDetailsImpl implements UserDetails {
     public boolean isAccountNonLocked() { return true; }
     @Override
     public boolean isCredentialsNonExpired() { return true; }
+    // Spring Security throws DisabledException when this is false, blocking login
+    // for users who have not yet verified their email.
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() { return emailVerified; }
 }

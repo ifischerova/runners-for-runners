@@ -9,6 +9,8 @@ import { RegistrationPage } from '../pages/RegistrationPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { TermsPage } from '../pages/TermsPage';
 import { ForgottenPasswordPage } from '../pages/ForgottenPasswordPage';
+import { VerifyEmailPage } from '../pages/VerifyEmailPage';
+import { ResetPasswordPage } from '../pages/ResetPasswordPage';
 
 export const AppRouter = () => {
   return (
@@ -23,6 +25,8 @@ export const AppRouter = () => {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/forgotten-password" element={<ForgottenPasswordPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="*" element={<div className="text-center"><h1 className="text-4xl">404 - Stránka nenalezena</h1></div>} />
       </Routes>
     </Layout>

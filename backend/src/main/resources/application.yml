@@ -19,12 +19,30 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+  mail:
+    host: ${MAIL_HOST:sandbox.smtp.mailtrap.io}
+    port: ${MAIL_PORT:2525}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 app:
   jwt:
     # HS256 needs a key of at least 256 bits (32 chars). Override the default
     # via the JWT_SECRET env var in any non-development environment.
     secret: ${JWT_SECRET:dev-only-placeholder-rotate-me-before-deploying-to-any-real-environment}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}  # 24 hours
+  url: ${APP_URL:http://localhost:5173}
+  mail:
+    from: ${MAIL_FROM:no-reply@bezcisobe.local}
+    # When true the EmailService logs the message and skips JavaMailSender. Lets the
+    # backend run without SMTP credentials for local development.
+    log-only: ${MAIL_LOG_ONLY:false}
 
 server:
   port: 8080

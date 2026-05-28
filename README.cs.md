@@ -42,7 +42,10 @@ filter/provider/UserDetails), `validation/` (vlastní pravidlo
 - Procházení českých běžeckých závodů; filtrování podle jména/místa/data se
   stránkováním
 - Vytváření, úprava, přijímání a rušení nabídek (OFFER) a poptávek (REQUEST)
-- Registrace uživatelů, přihlášení a JWT-chráněné akce
+- Registrace uživatelů s **povinným ověřením e-mailu** (token se posílá
+  SMTP a přihlášení je blokované, dokud uživatel neklikne na odkaz)
+- **Obnovení zapomenutého hesla** přes hodinový token zaslaný e-mailem
+- Přihlášení a JWT-chráněné akce
 - Dvě role: `ROLE_USER` a `ROLE_ADMIN`; admin endpointy hlídá `@PreAuthorize`
   i URL filtr (defence in depth)
 - Vlastní cross-field validace pro vytvoření jízdy (`@ValidRideRequest`)
@@ -94,11 +97,14 @@ CREATE DATABASE bezcisobe;
 ```
 
 Flyway sám vytvoří schéma a naseeduje číselníky, závody, uživatele a
-ukázkové jízdy přes migrace `V1`–`V9` při prvním spuštění (V5/V6 naplní
+ukázkové jízdy přes migrace `V1`–`V10` při prvním spuštění (V5/V6 naplní
 kalendář 2026 scraperem ze [ceskybeh.cz/terminovka](https://ceskybeh.cz/terminovka/),
 V7 opraví chybu v destinacích jízd, V8 odstraní admina ze sdílených
 jízd, V9 přidá 10 mezinárodních uživatelů s jízdami, aby seznam jízd
-viditelně míchal české i zahraniční běžce).
+viditelně míchal české i zahraniční běžce, V10 přidá sloupec
+`email_verified` a tabulky `verification_tokens` / `password_reset_tokens`
+a všechny seedované uživatele rovnou označí jako ověřené, aby testovací
+účty fungovaly dál).
 
 ### Spuštění
 
@@ -109,12 +115,39 @@ mvn test                # JUnit 5 proti in-memory H2 (Postgres není potřeba)
 mvn spring-boot:run     # API na http://localhost:8080
 ```
 
+### Odesílání e-mailů (ověření + reset hesla)
+
+Oba toky používají `spring-boot-starter-mail`. Profil `dev` má defaultně
+zapnutý **log-only** režim: tělo e-mailu i klikací odkaz se vypíší jen do
+konzole backendu, takže celý tok je možné otestovat bez jakýchkoli SMTP
+přístupů.
+
+Pokud chcete maily skutečně doručovat, nasměrujte backend na SMTP server
+— Mailtrap sandbox funguje hned z krabice:
+
+```bash
+# 1) Registrace na mailtrap.io → Sandbox → Email Testing → "Show credentials"
+# 2) Exportuj SMTP přístupy (výchozí hodnoty už míří na Mailtrap sandbox)
+export MAIL_USERNAME=<uživatel z mailtrapu>
+export MAIL_PASSWORD=<heslo z mailtrapu>
+export MAIL_LOG_ONLY=false
+# Volitelné přepisy — defaulty níže
+# export MAIL_HOST=sandbox.smtp.mailtrap.io
+# export MAIL_PORT=2525
+# export MAIL_FROM=no-reply@bezcisobe.local
+# export APP_URL=http://localhost:5173   # základ URL v odkazu v e-mailu
+```
+
 ### REST rozhraní
 
 | Endpoint                              | Metoda | Autorizace   | Účel                                      |
 | ------------------------------------- | ------ | ------------ | ----------------------------------------- |
-| `/api/auth/register`                  | POST   | veřejné      | Vytvořit účet                             |
-| `/api/auth/login`                     | POST   | veřejné      | Vydat JWT                                 |
+| `/api/auth/register`                  | POST   | veřejné      | Vytvořit účet; pošle ověřovací e-mail     |
+| `/api/auth/verify-email?token=`       | GET    | veřejné      | Ověřit účet tokenem z e-mailu             |
+| `/api/auth/resend-verification`       | POST   | veřejné      | Znovu poslat ověřovací e-mail (tiše)      |
+| `/api/auth/forgot-password`           | POST   | veřejné      | Spustit reset hesla e-mailem (tiše)       |
+| `/api/auth/reset-password`            | POST   | veřejné      | Nastavit nové heslo pomocí reset tokenu   |
+| `/api/auth/login`                     | POST   | veřejné      | Vydat JWT (blokované dokud není ověřeno)  |
 | `/api/auth/me`                        | GET    | bearer       | Aktuální uživatel                         |
 | `/api/races`                          | GET    | veřejné      | Seznam všech závodů                       |
 | `/api/races/search`                   | GET    | veřejné      | Stránkované hledání podle jména/místa/data|
@@ -217,6 +250,12 @@ Seedované BCrypt hashe byly vygenerovány znovu proti
 `BCryptPasswordEncoder` a samy se ověřují — `mvn test
 -Dtest=BCryptHashValidationTest` selže, kdyby se některý hash rozjel s
 heslem.
+
+Všechny seedované účty výše má migrace `V10` rovnou nastavené na
+`email_verified = true`, takže se přihlásí bez ověřovacího kroku. Nově
+vytvořené účty přes `POST /api/auth/register` ověřené NEJSOU — uživatel
+musí nejprve kliknout na odkaz, který mu dorazí do e-mailu, jinak ho
+přihlášení neprojde.
 
 ## Dokumentace
 

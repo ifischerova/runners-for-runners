@@ -88,11 +88,19 @@ The app has **9 different pages**:
 2. **AboutPage** (`/about`) – About the project, our vision and values
 3. **RacesPage** (`/races`) – Main page – race list and ride management
 4. **OrganizersPage** (`/organizers`) – Info for race organizers
-5. **LoginPage** (`/login`) – Login with validation
-6. **RegistrationPage** (`/registration`) – New account registration
+5. **LoginPage** (`/login`) – Login with validation; surfaces a 403
+   "verify your email" state with an inline "Resend verification email" form
+6. **RegistrationPage** (`/registration`) – New account registration; after
+   submit the page swaps to a "Check your inbox" state with a Resend button
 7. **ProfilePage** (`/profile`) – User profile (logged-in users only)
-8. **ForgottenPasswordPage** (`/forgotten-password`) – Password recovery
-9. **TermsPage** (`/terms`) – Terms of service
+8. **ForgottenPasswordPage** (`/forgotten-password`) – Requests a password-reset
+   email (the backend is silent on unknown addresses)
+9. **VerifyEmailPage** (`/verify-email?token=…`) – Landing page for the
+   verification link; calls the backend and shows success / failure +
+   a Resend form
+10. **ResetPasswordPage** (`/reset-password?token=…`) – Landing page for the
+    reset link; collects a new password + confirmation
+11. **TermsPage** (`/terms`) – Terms of service
 
 ## 3. State management
 
@@ -185,8 +193,15 @@ attached as `Authorization: Bearer <token>`.
 
 **Login and registration:**
 
-- `login(username, password)` – POST `/auth/login`, stores the JWT
-- `register(...)` – POST `/auth/register`
+- `login(username, password)` – POST `/auth/login`, stores the JWT.
+  Throws an `ApiError` (custom subclass that carries the HTTP `status`)
+  so callers can distinguish 401 (bad credentials) from 403 (account
+  exists but email not verified) without parsing message text
+- `register(...)` – POST `/auth/register` (no JWT — backend emails a link)
+- `verifyEmail(token)` – GET `/auth/verify-email?token=…`
+- `resendVerification(email)` – POST `/auth/resend-verification`
+- `forgotPassword(email)` – POST `/auth/forgot-password`
+- `resetPassword(token, password)` – POST `/auth/reset-password`
 - `getCurrentUser()` – GET `/auth/me`
 - `logout()` – clears the local token
 
@@ -485,12 +500,37 @@ The app works on all devices:
 - Email
 - Password + password confirmation
 - Acceptance of the terms
+- After submit, the account is saved with `email_verified=false`,
+  `AuthService` generates a 24h-expiring `VerificationToken`, and
+  `EmailService` sends a link to the user. The page swaps to a
+  "Check your inbox" state with a Resend button.
+
+**Email verification:**
+
+- `VerifyEmailPage` reads the `?token=` query parameter, calls
+  `GET /api/auth/verify-email`, and shows success / failure
+- Failure state offers a one-field form that calls
+  `POST /api/auth/resend-verification` (the backend always returns 204
+  so the page cannot leak whether the email exists)
+- Login is blocked for unverified accounts: `UserDetailsImpl.isEnabled`
+  returns `false`, Spring Security throws `DisabledException`, and the
+  global handler maps it to a 403 with a Czech message. The login page
+  detects the 403 via the typed `ApiError.status` and renders an inline
+  Resend form.
 
 **Forgotten password:**
 
-- Password recovery page
-- Email validation
-- Checks whether the user exists
+- `ForgottenPasswordPage` calls `POST /api/auth/forgot-password`
+- Backend lookups are silent — both unknown and known emails respond 204
+  so an attacker cannot enumerate accounts
+- On a hit, `AuthService.requestPasswordReset` deletes prior reset tokens
+  for the user, creates a fresh 1h-expiring `PasswordResetToken`, and
+  emails the `/reset-password?token=…` link
+- `ResetPasswordPage` reads the token from the URL, collects a new
+  password + confirmation, and calls `POST /api/auth/reset-password`.
+  On success the user is marked `email_verified=true` as well, so a user
+  who never verified the original sign-up email can still get into their
+  account by resetting the password
 
 ### 8.3 Protected pages
 
@@ -602,13 +642,21 @@ browser. Each endpoint carries `@Operation` with a summary and
 - The backend needs a running PostgreSQL on `localhost:5432` with the `bezcisobe` database (default parameters in `application.yml`, overridable via the `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` env vars).
 - The frontend expects the backend at `http://localhost:8080`. The address is hard-coded in `apiService.ts` – for production it would be in an env var.
 - The JWT secret is read from the `JWT_SECRET` env var; the YAML only holds a dev placeholder, so the app boots out of the box but a real secret has to be set in production (Vault, Azure Key Vault, …).
+- Email delivery uses `spring-boot-starter-mail`. The `dev` profile defaults
+  to `app.mail.log-only=true`, which prints the email body + link to the
+  console instead of opening an SMTP connection — handy for local clicks
+  without a real inbox. To deliver real mail set `MAIL_LOG_ONLY=false` and
+  provide `MAIL_USERNAME` / `MAIL_PASSWORD` (defaults already point at the
+  Mailtrap sandbox). `APP_URL` controls the base URL embedded in the links.
 
 ### 11.2 Missing features
 
 For real-world use, the app would still need:
 
 - Real-time chat between users
-- Notifications (email / push)
+- Push notifications (transactional email is already wired for
+  verification + password reset; in-app/push notifications and
+  marketing-style email digests are still missing)
 - Map integration
 - Driver / passenger ratings
 - Payment gateway

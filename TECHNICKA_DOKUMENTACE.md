@@ -84,11 +84,20 @@ Aplikace má **9 různých stránek**:
 2. **AboutPage** (`/about`) - O projektu, naše vize a hodnoty
 3. **RacesPage** (`/races`) - Hlavní stránka - seznam závodů a správa jízd
 4. **OrganizersPage** (`/organizers`) - Info pro pořadatele závodů
-5. **LoginPage** (`/login`) - Přihlášení s validací
-6. **RegistrationPage** (`/registration`) - Registrace nového účtu
+5. **LoginPage** (`/login`) - Přihlášení s validací; ukazuje 403 stav
+   „ověř si e-mail" s in-line formulářem pro znovuzaslání odkazu
+6. **RegistrationPage** (`/registration`) - Registrace nového účtu; po
+   odeslání se stránka přepne do stavu „Zkontroluj si e-mail" s tlačítkem
+   Poslat znovu
 7. **ProfilePage** (`/profile`) - Profil uživatele (jen pro přihlášené)
-8. **ForgottenPasswordPage** (`/forgotten-password`) - Obnova hesla
-9. **TermsPage** (`/terms`) - Obchodní podmínky
+8. **ForgottenPasswordPage** (`/forgotten-password`) - Vyžádání e-mailu
+   pro reset hesla (backend mlčí, pokud adresu nezná)
+9. **VerifyEmailPage** (`/verify-email?token=…`) - Cílová stránka pro
+   ověřovací odkaz; volá backend a ukáže úspěch / chybu + formulář pro
+   znovuzaslání
+10. **ResetPasswordPage** (`/reset-password?token=…`) - Cílová stránka pro
+    reset odkaz; vybere se nové heslo + potvrzení
+11. **TermsPage** (`/terms`) - Obchodní podmínky
 
 ## 3. Správa stavu (State Management)
 
@@ -175,8 +184,15 @@ Soubor `apiService.ts` je tenký REST klient nad `fetch`, který volá backend n
 
 **Přihlášení a registrace:**
 
-- `login(username, password)` – POST `/auth/login`, uloží JWT
-- `register(...)` – POST `/auth/register`
+- `login(username, password)` – POST `/auth/login`, uloží JWT.
+  Při chybě hodí `ApiError` (vlastní podtyp Erroru, který nese HTTP
+  `status`), takže volající rozliší 401 (špatné údaje) od 403 (účet
+  existuje, ale není ověřený) bez parsování textu zprávy
+- `register(...)` – POST `/auth/register` (žádný JWT — backend pošle odkaz)
+- `verifyEmail(token)` – GET `/auth/verify-email?token=…`
+- `resendVerification(email)` – POST `/auth/resend-verification`
+- `forgotPassword(email)` – POST `/auth/forgot-password`
+- `resetPassword(token, password)` – POST `/auth/reset-password`
 - `getCurrentUser()` – GET `/auth/me`
 - `logout()` – smaže lokální token
 
@@ -462,12 +478,36 @@ Aplikace funguje na všech zařízeních:
 - Email
 - Heslo + potvrzení hesla
 - Souhlas s podmínkami
+- Po odeslání se účet uloží s `email_verified=false`, `AuthService`
+  vygeneruje `VerificationToken` s platností 24 hodin a `EmailService`
+  pošle odkaz na uvedený e-mail. Stránka se přepne do stavu
+  „Zkontroluj si e-mail" s tlačítkem pro znovuzaslání odkazu.
+
+**Ověření e-mailu:**
+
+- `VerifyEmailPage` přečte `?token=` z URL, zavolá
+  `GET /api/auth/verify-email` a zobrazí úspěch / chybu
+- V chybovém stavu nabídne formulář, který volá
+  `POST /api/auth/resend-verification` (backend vždy vrátí 204, aby
+  stránka nemohla prozradit, zda e-mail existuje)
+- Přihlášení neověřeného účtu je blokované: `UserDetailsImpl.isEnabled`
+  vrací `false`, Spring Security hodí `DisabledException` a globální
+  handler ji zmapuje na 403 s českou hláškou. Přihlašovací stránka 403
+  rozezná přes typovaný `ApiError.status` a zobrazí inline formulář pro
+  znovuzaslání odkazu.
 
 **Zapomenuté heslo:**
 
-- Stránka pro obnovu hesla
-- Validace emailu
-- Kontrola existence uživatele
+- `ForgottenPasswordPage` volá `POST /api/auth/forgot-password`
+- Backend mlčí — neznámý i známý e-mail vrátí 204, aby útočník neuměl
+  zjistit, kdo má v systému účet
+- Při zásahu `AuthService.requestPasswordReset` smaže předchozí reset
+  tokeny pro uživatele, vytvoří nový `PasswordResetToken` s platností
+  1 hodinu a pošle odkaz `/reset-password?token=…`
+- `ResetPasswordPage` přečte token z URL, vybere nové heslo + potvrzení
+  a zavolá `POST /api/auth/reset-password`. Úspěšný reset zároveň
+  nastaví `email_verified=true`, takže uživatel, který původní ověřovací
+  odkaz nikdy nepoužil, se dostane do účtu i přes reset hesla
 
 ### 8.3 Chráněné stránky
 
@@ -565,13 +605,22 @@ Konfigurace `OpenApiConfig` přidává JWT bearer security scheme — v UI lze p
 - Backend potřebuje běžící PostgreSQL na `localhost:5432` s databází `bezcisobe` (defaultní parametry v `application.yml`, přepsatelné přes env proměnné `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`).
 - Frontend očekává backend na `http://localhost:8080`. Adresa je hard-coded v `apiService.ts` – pro produkci by byla v env proměnné.
 - JWT secret se čte z `JWT_SECRET` env proměnné; YAML drží jen dev placeholder, takže aplikace funguje out-of-the-box, ale v produkci je nutné secret nastavit (Vault, Azure Key Vault, …).
+- Odesílání e-mailů používá `spring-boot-starter-mail`. Profil `dev` má
+  defaultně `app.mail.log-only=true`, takže tělo e-mailu + odkaz se vypíší
+  jen do konzole místo otevírání SMTP spojení — užitečné pro lokální
+  klikání bez reálné schránky. Pro skutečné doručování nastav
+  `MAIL_LOG_ONLY=false` a doplň `MAIL_USERNAME` / `MAIL_PASSWORD`
+  (defaulty už míří na Mailtrap sandbox). Základ URL v odkazech řídí
+  `APP_URL`.
 
 ### 11.2 Chybějící funkce
 
 Pro reálný provoz by byla ještě potřeba:
 
 - Real-time chat mezi uživateli
-- Notifikace (email / push)
+- Push notifikace (transakční e-maily pro ověření a reset hesla už
+  fungují; in-app / push notifikace a marketingové e-mailové digesty
+  zatím chybí)
 - Mapová integrace
 - Hodnocení řidičů / spolujezdců
 - Platební brána

@@ -1,8 +1,9 @@
 import { useState, FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { PartyPopper } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { PartyPopper, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
+import { apiService } from '../services/apiService';
 
 export const RegistrationPage = () => {
   const [formData, setFormData] = useState({
@@ -14,8 +15,9 @@ export const RegistrationPage = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const { register } = useAuth();
-  const navigate = useNavigate();
   const { t } = useTranslation();
 
   const validateForm = (): boolean => {
@@ -76,12 +78,24 @@ export const RegistrationPage = () => {
         email: formData.email,
         password: formData.password,
       });
-      alert(t('auth.register.successMessage'));
-      navigate('/login');
+      setIsSubmitted(true);
     } catch (err) {
       setErrors({ general: err instanceof Error ? err.message : t('auth.register.error.failed') });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!formData.email) return;
+    setResendState('sending');
+    try {
+      await apiService.resendVerification(formData.email);
+    } catch {
+      // resend-verification is always 204 server-side; swallow client errors so we
+      // never imply whether the account exists
+    } finally {
+      setResendState('sent');
     }
   };
 
@@ -92,6 +106,52 @@ export const RegistrationPage = () => {
       setErrors({ ...errors, [field]: '' });
     }
   };
+
+  if (isSubmitted) {
+    return (
+      <div className="section-container max-w-md mx-auto animate-fade-in">
+        <div className="glass-card p-8 text-center animate-scale-in">
+          <div className="inline-block w-16 h-16 bg-gradient-to-br from-accent-500 to-primary-500 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+            <Mail size={32} strokeWidth={1.5} className="text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-dark-800 dark:text-dark-50 mb-4">
+            {t('auth.register.sent.title')}
+          </h2>
+          <p className="text-dark-600 dark:text-dark-300 mb-4 leading-relaxed">
+            {t('auth.register.sent.body.before')}{' '}
+            <span className="font-semibold text-primary-600 dark:text-primary-300">{formData.email}</span>
+            {t('auth.register.sent.body.after')}
+          </p>
+          <p className="text-sm text-dark-500 dark:text-dark-400 mb-6">
+            {t('auth.register.sent.spam')}
+          </p>
+
+          {resendState === 'sent' ? (
+            <p className="text-sm text-emerald-700 dark:text-emerald-300 mb-6">
+              {t('auth.register.sent.resent')}
+            </p>
+          ) : (
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendState === 'sending'}
+              className="text-primary-600 dark:text-primary-300 hover:text-primary-700 dark:hover:text-primary-200 font-medium text-sm mb-6 disabled:opacity-50"
+            >
+              {resendState === 'sending'
+                ? t('auth.register.sent.resending')
+                : t('auth.register.sent.resend')}
+            </button>
+          )}
+
+          <div className="border-t border-gray-200 dark:border-surface-700 pt-4">
+            <Link to="/login" className="btn-primary-custom inline-block">
+              {t('auth.register.sent.back')}
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="section-container max-w-md mx-auto animate-fade-in">
