@@ -1,13 +1,16 @@
 package cz.bezcisobe.backend.controller;
 
+import cz.bezcisobe.backend.dto.request.ChangePasswordRequest;
 import cz.bezcisobe.backend.dto.request.ForgotPasswordRequest;
 import cz.bezcisobe.backend.dto.request.LoginRequest;
 import cz.bezcisobe.backend.dto.request.RegisterRequest;
 import cz.bezcisobe.backend.dto.request.ResendVerificationRequest;
 import cz.bezcisobe.backend.dto.request.ResetPasswordRequest;
+import cz.bezcisobe.backend.dto.request.UpdateProfileRequest;
 import cz.bezcisobe.backend.dto.response.AuthResponse;
 import cz.bezcisobe.backend.dto.response.ErrorResponse;
 import cz.bezcisobe.backend.dto.response.UserResponse;
+import cz.bezcisobe.backend.security.UserDetailsImpl;
 import cz.bezcisobe.backend.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -21,6 +24,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -104,5 +108,34 @@ public class AuthController {
     @Operation(summary = "Return the currently authenticated user")
     public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(authService.getCurrentUser(userDetails.getUsername()));
+    }
+
+    @PostMapping("/change-password")
+    @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Change the current user's password")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Password updated"),
+            @ApiResponse(responseCode = "400", description = "Current password incorrect or new password too short",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest req,
+                                                @AuthenticationPrincipal UserDetailsImpl principal) {
+        authService.changePassword(principal.getUsername(), req.currentPassword(), req.newPassword());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Update the current user's profile (first name, last name, city, language)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Profile updated"),
+            @ApiResponse(responseCode = "400", description = "Validation error",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public ResponseEntity<UserResponse> updateProfile(@Valid @RequestBody UpdateProfileRequest req,
+                                                       @AuthenticationPrincipal UserDetailsImpl principal) {
+        return ResponseEntity.ok(authService.updateProfile(principal.getUsername(), req));
     }
 }
