@@ -9,22 +9,22 @@ import jakarta.validation.constraints.NotNull;
 
 @ValidRideRequest
 public record CreateRideRequest(
-        @NotNull(message = "ID závodu je povinné")
+        @NotNull(message = "{validation.ride.race.required}")
         Long raceId,
 
-        @NotBlank(message = "Typ jízdy je povinný")
+        @NotBlank(message = "{validation.ride.type.required}")
         String type,
 
-        @NotBlank(message = "Místo odjezdu je povinné")
+        @NotBlank(message = "{validation.ride.origin.required}")
         String from,
 
         String to,
 
         String car,
 
-        @NotNull(message = "Počet míst je povinný")
-        @Min(value = 1, message = "Minimální počet míst je 1")
-        @Max(value = 10, message = "Maximální počet míst je 10")
+        @NotNull(message = "{validation.ride.seats.required}")
+        @Min(value = 1, message = "{validation.ride.seats.min}")
+        @Max(value = 10, message = "{validation.ride.seats.max}")
         Integer availableSeats,
 
         String notes

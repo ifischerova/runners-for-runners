@@ -3,9 +3,9 @@ package cz.bezcisobe.backend.dto.request;
 import jakarta.validation.constraints.NotBlank;
 
 public record LoginRequest(
-        @NotBlank(message = "Uživatelské jméno je povinné")
+        @NotBlank(message = "{validation.username.required}")
         String username,
 
-        @NotBlank(message = "Heslo je povinné")
+        @NotBlank(message = "{validation.password.required}")
         String password
 ) {}

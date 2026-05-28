@@ -166,8 +166,11 @@ class RideServiceTest {
 
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> rideService.updateRide(rideId, req, ownerId));
-        assertTrue(ex.getMessage().contains("2"),
-                "Error message should mention current occupant count");
+        assertEquals("error.ride.seats_below_passengers", ex.getMessageKey(),
+                "Should signal seats-below-passengers via message key");
+        assertNotNull(ex.getArgs(), "Args must carry the occupant count for interpolation");
+        assertEquals(2, ex.getArgs()[0],
+                "Error args should mention current occupant count");
     }
 
     @Test
@@ -211,8 +214,8 @@ class RideServiceTest {
 
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> rideService.createRide(req, ownerId));
-        assertTrue(ex.getMessage().toLowerCase().contains("proběhlý"),
-                "Error message should explain the race already happened");
+        assertEquals("error.ride.cannot_create_past", ex.getMessageKey(),
+                "Error message key should explain the race already happened");
         verify(rideRepository, never()).save(any());
     }
 
@@ -227,8 +230,8 @@ class RideServiceTest {
 
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> rideService.acceptRide(rideId, passengerId));
-        assertTrue(ex.getMessage().toLowerCase().contains("proběhlý"),
-                "Error message should explain the race already happened");
+        assertEquals("error.ride.cannot_accept_past", ex.getMessageKey(),
+                "Error message key should explain the race already happened");
         assertEquals(0, ride.getOccupiedSeats(), "Occupied seats must not change");
         assertTrue(ride.getPassengers().isEmpty(), "Passenger list must not change");
     }

@@ -31,14 +31,14 @@ public class RideRequestValidator
         if (OFFER.equals(type)) {
             if (isBlank(payload.car())) {
                 ctx.buildConstraintViolationWithTemplate(
-                        "Pro nabídku jízdy (OFFER) je povinné vyplnit auto")
+                        "{validation.ride.offer.car.required}")
                         .addPropertyNode("car")
                         .addConstraintViolation();
                 valid = false;
             }
             if (payload.availableSeats() == null || payload.availableSeats() < 1) {
                 ctx.buildConstraintViolationWithTemplate(
-                        "Pro nabídku jízdy (OFFER) musí být alespoň 1 volné místo")
+                        "{validation.ride.offer.seats.required}")
                         .addPropertyNode("availableSeats")
                         .addConstraintViolation();
                 valid = false;
@@ -46,14 +46,14 @@ public class RideRequestValidator
         } else if (REQUEST.equals(type)) {
             if (!isBlank(payload.car())) {
                 ctx.buildConstraintViolationWithTemplate(
-                        "U poptávky jízdy (REQUEST) nesmí být vyplněno auto")
+                        "{validation.ride.request.car.forbidden}")
                         .addPropertyNode("car")
                         .addConstraintViolation();
                 valid = false;
             }
         } else {
             ctx.buildConstraintViolationWithTemplate(
-                    "Typ jízdy musí být OFFER nebo REQUEST")
+                    "{validation.ride.type.invalid}")
                     .addPropertyNode("type")
                     .addConstraintViolation();
             valid = false;

@@ -77,11 +77,11 @@ public class AuthService {
     public UserResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.username())) {
             log.warn("Registration rejected: username '{}' already taken", request.username());
-            throw new DuplicateResourceException("Uživatelské jméno již existuje");
+            throw DuplicateResourceException.of("error.auth.username_exists");
         }
         if (userRepository.existsByEmail(request.email())) {
             log.warn("Registration rejected: email '{}' already taken", request.email());
-            throw new DuplicateResourceException("Email již existuje");
+            throw DuplicateResourceException.of("error.auth.email_exists");
         }
 
         String lang = request.language() == null || request.language().isBlank() ? "cs" : request.language();
@@ -103,13 +103,13 @@ public class AuthService {
     @Transactional
     public void verifyEmail(String token) {
         VerificationToken vt = verificationTokenRepository.findByToken(token)
-                .orElseThrow(() -> new BadRequestException("Neplatný ověřovací odkaz"));
+                .orElseThrow(() -> BadRequestException.of("error.auth.invalid_verification_token"));
 
         if (vt.isUsed()) {
-            throw new BadRequestException("Tento ověřovací odkaz již byl použit");
+            throw BadRequestException.of("error.auth.verification_token_used");
         }
         if (vt.isExpired()) {
-            throw new BadRequestException("Ověřovací odkaz vypršel. Vyžádejte si nový.");
+            throw BadRequestException.of("error.auth.verification_token_expired");
         }
 
         User user = vt.getUser();
@@ -169,13 +169,13 @@ public class AuthService {
     @Transactional
     public void resetPassword(String token, String newPassword) {
         PasswordResetToken prt = passwordResetTokenRepository.findByToken(token)
-                .orElseThrow(() -> new BadRequestException("Neplatný odkaz pro obnovení hesla"));
+                .orElseThrow(() -> BadRequestException.of("error.auth.invalid_reset_token"));
 
         if (prt.isUsed()) {
-            throw new BadRequestException("Tento odkaz pro obnovení hesla již byl použit");
+            throw BadRequestException.of("error.auth.reset_token_used");
         }
         if (prt.isExpired()) {
-            throw new BadRequestException("Odkaz pro obnovení hesla vypršel. Vyžádejte si nový.");
+            throw BadRequestException.of("error.auth.reset_token_expired");
         }
 
         User user = prt.getUser();
@@ -193,7 +193,7 @@ public class AuthService {
     @Transactional(readOnly = true)
     public UserResponse getCurrentUser(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Uživatel nenalezen"));
+                .orElseThrow(() -> ResourceNotFoundException.of("error.auth.user_not_found"));
         return userMapper.toResponse(user);
     }
 

@@ -4,10 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record ResetPasswordRequest(
-        @NotBlank(message = "Token je povinný")
+        @NotBlank(message = "{validation.token.required}")
         String token,
 
-        @NotBlank(message = "Heslo je povinné")
-        @Size(min = 6, message = "Heslo musí mít alespoň 6 znaků")
+        @NotBlank(message = "{validation.password.required}")
+        @Size(min = 6, message = "{validation.password.size}")
         String password
 ) {}

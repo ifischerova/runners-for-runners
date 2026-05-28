@@ -6,16 +6,16 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
-        @NotBlank(message = "Uživatelské jméno je povinné")
-        @Size(min = 3, max = 50, message = "Uživatelské jméno musí mít 3-50 znaků")
+        @NotBlank(message = "{validation.username.required}")
+        @Size(min = 3, max = 50, message = "{validation.username.size}")
         String username,
 
-        @NotBlank(message = "Email je povinný")
-        @Email(message = "Neplatný formát emailu")
+        @NotBlank(message = "{validation.email.required}")
+        @Email(message = "{validation.email.format}")
         String email,
 
-        @NotBlank(message = "Heslo je povinné")
-        @Size(min = 6, message = "Heslo musí mít alespoň 6 znaků")
+        @NotBlank(message = "{validation.password.required}")
+        @Size(min = 6, message = "{validation.password.size}")
         String password,
 
         @Pattern(regexp = "cs|en", message = "{validation.language.invalid}")

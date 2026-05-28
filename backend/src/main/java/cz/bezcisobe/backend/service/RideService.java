@@ -60,12 +60,12 @@ public class RideService {
         Race race = raceRepository.findById(request.raceId())
                 .orElseThrow(() -> {
                     log.warn("Race {} not found while creating ride", request.raceId());
-                    return new ResourceNotFoundException("Závod nenalezen");
+                    return ResourceNotFoundException.of("error.ride.race_not_found");
                 });
-        rejectIfRaceAlreadyHappened(race, "Nelze vytvořit jízdu pro již proběhlý závod");
+        rejectIfRaceAlreadyHappened(race, "error.ride.cannot_create_past");
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Uživatel nenalezen"));
+                .orElseThrow(() -> ResourceNotFoundException.of("error.auth.user_not_found"));
 
         RideType type = parseType(request.type());
 
@@ -95,18 +95,16 @@ public class RideService {
     @Transactional
     public RideResponse updateRide(UUID rideId, UpdateRideRequest request, UUID userId) {
         Ride ride = rideRepository.findById(rideId)
-                .orElseThrow(() -> new ResourceNotFoundException("Jízda nenalezena"));
+                .orElseThrow(() -> ResourceNotFoundException.of("error.ride.not_found"));
 
         if (!ride.getUser().getId().equals(userId)) {
             log.warn("User {} attempted to update ride {} owned by {}",
                     userId, rideId, ride.getUser().getId());
-            throw new BadRequestException("Nemáte oprávnění upravit tuto jízdu");
+            throw BadRequestException.of("error.ride.no_permission_to_update");
         }
 
         if (request.availableSeats() < ride.getOccupiedSeats()) {
-            throw new BadRequestException(
-                    "Počet míst nemůže být nižší než počet již přihlášených spolujezdců ("
-                            + ride.getOccupiedSeats() + ")");
+            throw BadRequestException.of("error.ride.seats_below_passengers", ride.getOccupiedSeats());
         }
 
         ride.setType(parseType(request.type()));
@@ -128,12 +126,12 @@ public class RideService {
     @Transactional
     public void deleteRide(UUID rideId, UUID userId) {
         Ride ride = rideRepository.findById(rideId)
-                .orElseThrow(() -> new ResourceNotFoundException("Jízda nenalezena"));
+                .orElseThrow(() -> ResourceNotFoundException.of("error.ride.not_found"));
 
         if (!ride.getUser().getId().equals(userId)) {
             log.warn("User {} attempted to delete ride {} owned by {}",
                     userId, rideId, ride.getUser().getId());
-            throw new BadRequestException("Nemáte oprávnění smazat tuto jízdu");
+            throw BadRequestException.of("error.ride.no_permission_to_delete");
         }
 
         rideRepository.delete(ride);
@@ -147,7 +145,7 @@ public class RideService {
     @Transactional
     public void deleteRideAsAdmin(UUID rideId, UUID adminId) {
         Ride ride = rideRepository.findById(rideId)
-                .orElseThrow(() -> new ResourceNotFoundException("Jízda nenalezena"));
+                .orElseThrow(() -> ResourceNotFoundException.of("error.ride.not_found"));
         rideRepository.delete(ride);
         log.warn("Admin {} force-deleted ride {} (was owned by {})",
                 adminId, rideId, ride.getUser().getId());
@@ -160,20 +158,20 @@ public class RideService {
     @Transactional
     public RideResponse acceptRide(UUID rideId, UUID passengerId) {
         Ride ride = rideRepository.findById(rideId)
-                .orElseThrow(() -> new ResourceNotFoundException("Jízda nenalezena"));
-        rejectIfRaceAlreadyHappened(ride.getRace(), "Nelze přijmout jízdu na již proběhlý závod");
+                .orElseThrow(() -> ResourceNotFoundException.of("error.ride.not_found"));
+        rejectIfRaceAlreadyHappened(ride.getRace(), "error.ride.cannot_accept_past");
 
         User passenger = userRepository.findById(passengerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Uživatel nenalezen"));
+                .orElseThrow(() -> ResourceNotFoundException.of("error.auth.user_not_found"));
 
         if (ride.getOccupiedSeats() >= ride.getAvailableSeats()) {
-            throw new BadRequestException("Nejsou k dispozici žádná volná místa");
+            throw BadRequestException.of("error.ride.no_seats");
         }
 
         boolean alreadyPassenger = ride.getPassengers().stream()
                 .anyMatch(p -> p.getId().equals(passengerId));
         if (alreadyPassenger) {
-            throw new BadRequestException("Již jste přihlášeni k této jízdě");
+            throw BadRequestException.of("error.ride.already_joined");
         }
 
         ride.getPassengers().add(passenger);
@@ -190,11 +188,11 @@ public class RideService {
     @Transactional
     public RideResponse cancelRideAcceptance(UUID rideId, UUID passengerId) {
         Ride ride = rideRepository.findById(rideId)
-                .orElseThrow(() -> new ResourceNotFoundException("Jízda nenalezena"));
+                .orElseThrow(() -> ResourceNotFoundException.of("error.ride.not_found"));
 
         boolean removed = ride.getPassengers().removeIf(p -> p.getId().equals(passengerId));
         if (!removed) {
-            throw new BadRequestException("Nejste přihlášeni k této jízdě");
+            throw BadRequestException.of("error.ride.not_joined");
         }
 
         ride.setOccupiedSeats(ride.getOccupiedSeats() - 1);
@@ -207,7 +205,7 @@ public class RideService {
         try {
             return RideType.valueOf(value);
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Neplatný typ jízdy");
+            throw BadRequestException.of("error.ride.invalid_type");
         }
     }
 
@@ -217,10 +215,10 @@ public class RideService {
      * editing or deleting existing rides remains allowed so users can clean
      * up their history.
      */
-    private void rejectIfRaceAlreadyHappened(Race race, String message) {
+    private void rejectIfRaceAlreadyHappened(Race race, String messageKey) {
         if (race.getDate().isBefore(LocalDate.now(APP_ZONE))) {
             log.warn("Rejected action on past race {} (date={})", race.getId(), race.getDate());
-            throw new BadRequestException(message);
+            throw BadRequestException.of(messageKey);
         }
     }
 }
