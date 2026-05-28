@@ -1,13 +1,14 @@
 import { useState, FormEvent, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
 import { apiService } from '../services/apiService';
 import type { Locale } from '../i18n/translations';
 
 export const ProfilePage = () => {
-  const { user, isAuthenticated, updateProfile } = useAuth();
+  const { user, isAuthenticated, updateProfile, deleteAccount } = useAuth();
   const { t, setLocale } = useTranslation();
+  const navigate = useNavigate();
 
   // Basic-info form state. Initialised from the loaded user; kept in sync via
   // useEffect because user may load asynchronously after the first render.
@@ -26,6 +27,12 @@ export const ProfilePage = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [pwdSaving, setPwdSaving] = useState(false);
   const [pwdMessage, setPwdMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Danger zone (delete account) state.
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePwd, setDeletePwd] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -55,6 +62,20 @@ export const ProfilePage = () => {
       setBasicMessage({ type: 'error', text: msg });
     } finally {
       setBasicSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await deleteAccount(deletePwd);
+      navigate('/');
+    } catch (err) {
+      const msg = err instanceof Error && err.message ? err.message : t('profile.dangerZone.error');
+      setDeleteError(msg);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -297,6 +318,75 @@ export const ProfilePage = () => {
           <p className="text-sm text-dark-500 dark:text-dark-400">{t('profile.rides.placeholder2')}</p>
         </div>
       </div>
+
+      {/* Danger zone */}
+      <section className="mt-6 rounded border border-red-500/60 dark:border-red-500/40 p-4 bg-red-50/40 dark:bg-red-900/10">
+        <h2 className="text-xl font-semibold text-red-700 dark:text-red-400">
+          {t('profile.dangerZone.title')}
+        </h2>
+        <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+          {t('profile.dangerZone.warning')}
+        </p>
+        <button
+          type="button"
+          onClick={() => setShowDeleteModal(true)}
+          className="mt-3 rounded bg-red-600 hover:bg-red-700 text-white px-4 py-2"
+        >
+          {t('profile.dangerZone.deleteAccount')}
+        </button>
+      </section>
+
+      {showDeleteModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-account-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => setShowDeleteModal(false)}
+        >
+          <div
+            className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="delete-account-title" className="text-lg font-semibold">
+              {t('profile.dangerZone.confirm.title')}
+            </h3>
+            <p className="mt-2 text-sm">{t('profile.dangerZone.confirm.password')}</p>
+            <input
+              type="password"
+              value={deletePwd}
+              onChange={(e) => setDeletePwd(e.target.value)}
+              autoComplete="current-password"
+              className="mt-3 w-full rounded border px-3 py-2 bg-white dark:bg-gray-700"
+              aria-label={t('profile.dangerZone.confirm.password')}
+            />
+            {deleteError && (
+              <p role="alert" className="mt-2 text-sm text-red-600">{deleteError}</p>
+            )}
+            <div className="mt-4 flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeletePwd('');
+                  setDeleteError('');
+                }}
+                className="rounded border px-4 py-2"
+              >
+                {t('profile.dangerZone.confirm.cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deleting || !deletePwd}
+                className="rounded bg-red-600 hover:bg-red-700 text-white px-4 py-2 disabled:opacity-50"
+              >
+                {t('profile.dangerZone.confirm.submit')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

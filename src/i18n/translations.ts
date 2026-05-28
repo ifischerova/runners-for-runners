@@ -337,6 +337,15 @@ const cs = {
   'profile.firstName.label': 'Jméno',
   'profile.lastName.label': 'Příjmení',
   'profile.city.label': 'Město',
+  // danger zone (account deletion)
+  'profile.dangerZone.title': 'Nebezpečná zóna',
+  'profile.dangerZone.warning': 'Smazání účtu je nevratné. Všechny tvé jízdy budou zrušeny a tvoji spolujezdci budou informováni e-mailem.',
+  'profile.dangerZone.deleteAccount': 'Smazat účet',
+  'profile.dangerZone.confirm.title': 'Opravdu smazat účet?',
+  'profile.dangerZone.confirm.password': 'Pro potvrzení zadej své heslo:',
+  'profile.dangerZone.confirm.submit': 'Ano, smazat účet',
+  'profile.dangerZone.confirm.cancel': 'Zrušit',
+  'profile.dangerZone.error': 'Nepodařilo se smazat účet.',
 
   // ===== terms =====
   'terms.title': 'Obchodní podmínky',
@@ -697,6 +706,15 @@ const en: Record<keyof typeof cs, string> = {
   'profile.firstName.label': 'First name',
   'profile.lastName.label': 'Last name',
   'profile.city.label': 'City',
+  // danger zone (account deletion)
+  'profile.dangerZone.title': 'Danger zone',
+  'profile.dangerZone.warning': 'Deleting your account is irreversible. All your rides will be cancelled and your fellow passengers will be notified by email.',
+  'profile.dangerZone.deleteAccount': 'Delete account',
+  'profile.dangerZone.confirm.title': 'Really delete account?',
+  'profile.dangerZone.confirm.password': 'Enter your password to confirm:',
+  'profile.dangerZone.confirm.submit': 'Yes, delete account',
+  'profile.dangerZone.confirm.cancel': 'Cancel',
+  'profile.dangerZone.error': 'Failed to delete account.',
 
   // ===== terms =====
   'terms.title': 'Terms of service',

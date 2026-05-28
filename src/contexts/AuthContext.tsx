@@ -10,6 +10,7 @@ interface AuthContextType {
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   updateProfile: (data: { firstName?: string; lastName?: string; city?: string; language?: string }) => Promise<void>;
+  deleteAccount: (password: string) => Promise<void>;
 }
 
 // Exported so tests can mount a component with a hand-rolled context value
@@ -78,6 +79,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const deleteAccount = async (password: string) => {
+    await apiService.deleteAccount(password);
+    logout();
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -88,6 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         register,
         logout,
         updateProfile,
+        deleteAccount,
       }}
     >
       {children}

@@ -146,6 +146,18 @@ export const apiService = {
     }
   },
 
+  deleteAccount: async (password: string): Promise<void> => {
+    const res = await fetch(`${API_BASE}/auth/delete-account`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ password }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ message: 'Chyba serveru' }));
+      throw new ApiError(body.message || `HTTP ${res.status}`, res.status);
+    }
+  },
+
   updateProfile: async (data: { firstName?: string; lastName?: string; city?: string; language?: string }): Promise<UserResponse> => {
     const res = await fetch(`${API_BASE}/auth/me`, {
       method: 'PUT',

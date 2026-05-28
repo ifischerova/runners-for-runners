@@ -11,6 +11,7 @@ vi.mock('../services/apiService', () => ({
   apiService: {
     changePassword: vi.fn(),
     updateProfile: vi.fn(),
+    deleteAccount: vi.fn(),
   },
 }));
 
@@ -36,6 +37,7 @@ function renderWith(user: User | null = mockUser, ctxOverrides: Record<string, u
     register: vi.fn(),
     logout: vi.fn(),
     updateProfile: vi.fn(),
+    deleteAccount: vi.fn(),
     ...ctxOverrides,
   };
   return render(
@@ -113,5 +115,34 @@ describe('ProfilePage', () => {
         language: 'cs',
       });
     });
+  });
+
+  it('opens delete modal and submits with password', async () => {
+    const deleteAccount = vi.fn().mockResolvedValue(undefined);
+    renderWith(mockUser, { deleteAccount });
+
+    // Click the Danger Zone "Delete account" button (outside the modal).
+    fireEvent.click(screen.getByRole('button', { name: /^smazat účet$/i }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/pro potvrzení zadej své heslo/i), {
+      target: { value: 'mypwd' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /ano, smazat účet/i }));
+
+    await waitFor(() => expect(deleteAccount).toHaveBeenCalledWith('mypwd'));
+  });
+
+  it('cancel button closes modal without calling deleteAccount', async () => {
+    const deleteAccount = vi.fn();
+    renderWith(mockUser, { deleteAccount });
+
+    fireEvent.click(screen.getByRole('button', { name: /^smazat účet$/i }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /^zrušit$/i }));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(deleteAccount).not.toHaveBeenCalled();
   });
 });
