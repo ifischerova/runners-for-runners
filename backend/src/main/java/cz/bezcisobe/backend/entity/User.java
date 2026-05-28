@@ -59,4 +59,25 @@ public class User {
             id = UUID.randomUUID();
         }
     }
+
+    /**
+     * Returns a human-readable display name composed of first and last name.
+     * Falls back to {@code username} when both name parts are null or blank,
+     * and uses whichever single part is present when only one is available.
+     * Never returns {@code "null"} or {@code "null null"} — safe for email bodies.
+     */
+    public String fullName() {
+        boolean hasFirst = firstName != null && !firstName.isBlank();
+        boolean hasLast = lastName != null && !lastName.isBlank();
+        if (hasFirst && hasLast) {
+            return firstName + " " + lastName;
+        }
+        if (hasFirst) {
+            return firstName;
+        }
+        if (hasLast) {
+            return lastName;
+        }
+        return username;
+    }
 }
