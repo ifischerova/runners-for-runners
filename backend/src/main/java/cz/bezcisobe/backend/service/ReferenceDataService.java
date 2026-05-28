@@ -2,7 +2,6 @@ package cz.bezcisobe.backend.service;
 
 import cz.bezcisobe.backend.dto.response.RaceCalendarResponse;
 import cz.bezcisobe.backend.dto.response.RaceResponse;
-import cz.bezcisobe.backend.repository.CertificationRepository;
 import cz.bezcisobe.backend.repository.RaceCalendarRepository;
 import cz.bezcisobe.backend.repository.TrackLengthRepository;
 import cz.bezcisobe.backend.repository.TrackTypeRepository;
@@ -17,7 +16,6 @@ public class ReferenceDataService {
 
     private final TrackLengthRepository trackLengthRepository;
     private final TrackTypeRepository trackTypeRepository;
-    private final CertificationRepository certificationRepository;
     private final RaceCalendarRepository raceCalendarRepository;
 
     public List<RaceResponse.RefItem> getTrackLengths() {
