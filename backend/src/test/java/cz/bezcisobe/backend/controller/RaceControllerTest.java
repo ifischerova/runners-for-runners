@@ -38,7 +38,7 @@ class RaceControllerTest {
                 "1", "Test Race", "Praha", "2026-05-10", "09:00", null,
                 new RaceResponse.RefItem("1", "Maraton"),
                 new RaceResponse.RefItem("1", "Silnice"),
-                List.of(), "1"
+                List.of(), "1", false
         );
         when(raceService.getAllRaces()).thenReturn(List.of(race));
 
@@ -54,7 +54,7 @@ class RaceControllerTest {
                 "1", "Test Race", "Praha", "2026-05-10", "09:00", null,
                 new RaceResponse.RefItem("1", "Maraton"),
                 new RaceResponse.RefItem("1", "Silnice"),
-                List.of(), "1"
+                List.of(), "1", false
         );
         when(raceService.getRaceById(1L)).thenReturn(race);
 
@@ -78,7 +78,7 @@ class RaceControllerTest {
                 "1", "Pražský maraton", "Praha", "2026-05-10", "09:00", null,
                 new RaceResponse.RefItem("4", "Maraton"),
                 new RaceResponse.RefItem("1", "Silnice"),
-                List.of(), "1"
+                List.of(), "1", false
         );
         PageResponse<RaceResponse> body = new PageResponse<>(
                 List.of(race), 0, 10, 1, 1, true, true);

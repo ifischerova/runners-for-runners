@@ -297,6 +297,7 @@ erDiagram
 | `users`       | `username` a `email` jsou UNIQUE. `email_verified` defaultně `false`.                               |
 | `rides`       | `type` je CHECK constraint na hodnoty `'OFFER'` nebo `'REQUEST'`.                                   |
 | `rides`       | `chk_seats`: `occupied_seats <= available_seats`.                                                   |
+| Past races    | Datum závodu mladší než dnešek (Europe/Prague) → `RideService` odmítne `createRide` i `acceptRide` s 400. Úpravy a mazání vlastní jízdy ani zrušení vlastního přijetí blokované nejsou. `RaceMapper` a `RideMapper` vystavují computed pole `isPast` / `racePast` pro frontend. |
 | `user_roles`  | Kompozitní PK `(user_id, role)`. Smaže se `ON DELETE CASCADE` při smazání uživatele.                |
 | `*_tokens`    | `token` je UNIQUE. `used` defaultně `false`. Expirace se kontroluje aplikačně přes `expires_at`.    |
 
@@ -335,7 +336,7 @@ erDiagram
 | ----------------------- | -------------- | ---------------------------------------------------------------------------------------- |
 | `AuthService`           | Service        | Registrace, přihlášení, e-mail verifikace, reset hesla. Centralizovaná autentizační logika. |
 | `EmailService`          | Service        | Wrapper nad `JavaMailSender`. Skládá HTML/text těla, sestavuje URL z `APP_URL`.          |
-| `RideService`           | Service        | CRUD jízd, accept/cancel, validace vlastnictví.                                          |
+| `RideService`           | Service        | CRUD jízd, accept/cancel, validace vlastnictví, blok pro proběhlé závody (`race.date < dnes` → `BadRequestException`). |
 | `RaceService`           | Service        | Listing + paginované hledání závodů.                                                     |
 | `AdminService`          | Service        | Administrátorské operace nad uživateli a jízdami.                                        |
 | `JwtTokenProvider`      | Security       | Generování a parsing JWT, validace podpisu a expirace.                                   |

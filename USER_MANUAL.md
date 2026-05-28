@@ -205,8 +205,10 @@ na domovskou stránku a smaže tvůj přihlašovací token z prohlížeče.
 - Vytvořit OFFER bez vyplněného auta – aplikace ti hodí chybu
   "Auto je povinné pro nabídku".
 - Zadat 0 míst nebo víc než 4.
-- Vytvořit jízdu pro již proběhlý závod (na to pozor, aplikace
-  to technicky umožní – sleduj si datum).
+- Vytvořit jízdu pro již proběhlý závod – aplikace tuto akci
+  blokuje. Proběhlé závody mají v detailu označení **PROBĚHLO**,
+  tlačítko *Přidat jízdu* se u nich nezobrazí a u jejich
+  stávajících nabídek je tlačítko *Přijmout* nedostupné.
 
 ### 8.2 Úprava a smazání vlastní jízdy
 

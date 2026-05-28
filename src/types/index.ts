@@ -32,6 +32,7 @@ export interface Race {
   trackType: TrackType;
   certifications: Certification[];
   raceCalendarId: string;
+  isPast: boolean;
 }
 
 export interface TrackLength {
@@ -59,6 +60,7 @@ export interface RaceCalendar {
 export interface Ride {
   id: string;
   raceId: string;
+  racePast: boolean;
   userId: string;
   userUsername: string;
   userFirstName?: string;

@@ -157,23 +157,25 @@ Konvence: **FRn** = funkční požadavek, **Pn** = priorita
 | FR21  | P1 | Přijatý uživatel může své přijetí zrušit. Tím se `occupied_seats` sníží.                                                                                                |
 | FR22  | P2 | Anonym může jízdy procházet, nikoli zakládat / přijímat.                                                                                                               |
 | FR23  | P1 | Jízda se zobrazí v seznamu jízd daného závodu (`GET /api/rides?raceId=…`).                                                                                             |
+| FR24  | P1 | Pokud je `race.date` v minulosti, systém odmítne vytvoření nové jízdy i přijetí cizí OFFER nabídky pro daný závod (HTTP 400). Úpravy a mazání vlastní jízdy ani zrušení vlastního přijetí blokované nejsou. |
+| FR25  | P2 | UI v detailu proběhlého závodu zobrazí označení **PROBĚHLO** / **FINISHED**, skryje tlačítko *Přidat jízdu* a u stávajících nabídek zneaktivní tlačítko *Přijmout*. |
 
 ### 3.4 Administrace
 
 | ID    | P  | Požadavek                                                                                                                                                              |
 | ----- | -- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| FR24  | P1 | Administrátor smí získat stránkovaný seznam všech uživatelů.                                                                                                           |
-| FR25  | P2 | Administrátor smí v seznamu uživatelů vyhledávat (case-insensitive napříč username / email / firstName / lastName).                                                    |
-| FR26  | P1 | Administrátor smí smazat libovolnou jízdu, i pokud není jejím vlastníkem (force-delete).                                                                               |
-| FR27  | P1 | Endpointy `/api/admin/**` jsou dostupné pouze pro `ROLE_ADMIN`. Jakýkoli jiný přístup vrátí 401 (neautentizovaný) nebo 403 (autentizovaný, ale bez práva).             |
+| FR26  | P1 | Administrátor smí získat stránkovaný seznam všech uživatelů.                                                                                                           |
+| FR27  | P2 | Administrátor smí v seznamu uživatelů vyhledávat (case-insensitive napříč username / email / firstName / lastName).                                                    |
+| FR28  | P1 | Administrátor smí smazat libovolnou jízdu, i pokud není jejím vlastníkem (force-delete).                                                                               |
+| FR29  | P1 | Endpointy `/api/admin/**` jsou dostupné pouze pro `ROLE_ADMIN`. Jakýkoli jiný přístup vrátí 401 (neautentizovaný) nebo 403 (autentizovaný, ale bez práva).             |
 
 ### 3.5 UI funkce
 
 | ID    | P  | Požadavek                                                                                                                                                              |
 | ----- | -- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| FR28  | P3 | UI je dvojjazyčné (čeština + angličtina), volba se persistuje v `localStorage`.                                                                                        |
-| FR29  | P3 | UI má světlý a tmavý motiv, volba se persistuje v `localStorage` a při první návštěvě respektuje OS `prefers-color-scheme`.                                            |
-| FR30  | P3 | UI je responzivní (mobil, tablet, desktop).                                                                                                                            |
+| FR30  | P3 | UI je dvojjazyčné (čeština + angličtina), volba se persistuje v `localStorage`.                                                                                        |
+| FR31  | P3 | UI má světlý a tmavý motiv, volba se persistuje v `localStorage` a při první návštěvě respektuje OS `prefers-color-scheme`.                                            |
+| FR32  | P3 | UI je responzivní (mobil, tablet, desktop).                                                                                                                            |
 
 ---
 

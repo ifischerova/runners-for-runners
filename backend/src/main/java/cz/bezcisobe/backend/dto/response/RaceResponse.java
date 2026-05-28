@@ -12,7 +12,8 @@ public record RaceResponse(
         RefItem trackLength,
         RefItem trackType,
         List<RefItem> certifications,
-        String raceCalendarId
+        String raceCalendarId,
+        boolean isPast
 ) {
     public record RefItem(String id, String name) {}
 }

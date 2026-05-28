@@ -171,7 +171,7 @@ export const RacesPage = () => {
           emptyLabel={t('races.picker.empty')}
           options={races.map((race) => ({
             value: race.id,
-            label: `${formatDate(race.date)} – ${race.name} (${race.place})`,
+            label: `${formatDate(race.date)} – ${race.name} (${race.place})${race.isPast ? ` · ${t('races.past.badge')}` : ''}`,
           }))}
         />
       </div>
@@ -181,9 +181,16 @@ export const RacesPage = () => {
         <div className="card-modern p-6 md:p-8 mb-8 max-w-4xl mx-auto animate-scale-in">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h3 className="text-2xl md:text-3xl font-bold text-dark-800 dark:text-dark-50 mb-2">
-                {selectedRaceData.name}
-              </h3>
+              <div className="flex items-center gap-3 mb-2 flex-wrap">
+                <h3 className="text-2xl md:text-3xl font-bold text-dark-800 dark:text-dark-50">
+                  {selectedRaceData.name}
+                </h3>
+                {selectedRaceData.isPast && (
+                  <span className="text-xs font-bold uppercase tracking-wide bg-gray-200 text-gray-700 dark:bg-surface-700 dark:text-dark-200 px-2.5 py-1 rounded-full">
+                    {t('races.past.badge')}
+                  </span>
+                )}
+              </div>
               <div className="flex items-center space-x-2 text-dark-600 dark:text-dark-300">
                 <span>{selectedRaceData.place}</span>
               </div>
@@ -235,7 +242,7 @@ export const RacesPage = () => {
             <h3 className="text-2xl font-bold text-dark-800 dark:text-dark-50">
               {t('races.rides.title')}
             </h3>
-            {isAuthenticated && (
+            {isAuthenticated && !selectedRaceData?.isPast && (
               <button
                 onClick={() => setShowCreateForm(!showCreateForm)}
                 className={`${
@@ -246,6 +253,11 @@ export const RacesPage = () => {
               >
                 {showCreateForm ? t('common.cancel') : t('races.rides.addBtn')}
               </button>
+            )}
+            {isAuthenticated && selectedRaceData?.isPast && (
+              <span className="text-sm text-dark-500 dark:text-dark-400 italic whitespace-nowrap">
+                {t('races.past.addRideDisabled')}
+              </span>
             )}
           </div>
 
@@ -423,6 +435,10 @@ export const RacesPage = () => {
                             >
                               {t('races.card.cancelAcceptance')}
                             </button>
+                          ) : ride.racePast ? (
+                            <span className="text-sm text-gray-400 dark:text-dark-400 italic" title={t('races.past.addRideDisabled')}>
+                              {t('races.past.acceptDisabled')}
+                            </span>
                           ) : ride.availableSeats > ride.occupiedSeats ? (
                             <button
                               onClick={() => handleAcceptRide(ride.id)}

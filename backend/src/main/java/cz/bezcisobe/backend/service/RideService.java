@@ -18,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +31,10 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 public class RideService {
+
+    // Past-race check uses Czech wall-clock so the cutoff matches what
+    // Czech users see in the UI, regardless of JVM timezone.
+    private static final ZoneId APP_ZONE = ZoneId.of("Europe/Prague");
 
     private final RideRepository rideRepository;
     private final RaceRepository raceRepository;
@@ -56,6 +62,8 @@ public class RideService {
                     log.warn("Race {} not found while creating ride", request.raceId());
                     return new ResourceNotFoundException("Závod nenalezen");
                 });
+        rejectIfRaceAlreadyHappened(race, "Nelze vytvořit jízdu pro již proběhlý závod");
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Uživatel nenalezen"));
 
@@ -153,6 +161,8 @@ public class RideService {
     public RideResponse acceptRide(UUID rideId, UUID passengerId) {
         Ride ride = rideRepository.findById(rideId)
                 .orElseThrow(() -> new ResourceNotFoundException("Jízda nenalezena"));
+        rejectIfRaceAlreadyHappened(ride.getRace(), "Nelze přijmout jízdu na již proběhlý závod");
+
         User passenger = userRepository.findById(passengerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Uživatel nenalezen"));
 
@@ -198,6 +208,19 @@ public class RideService {
             return RideType.valueOf(value);
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("Neplatný typ jízdy");
+        }
+    }
+
+    /**
+     * Carpooling is meaningful only up to race day. Once the race date has
+     * passed, no new rides may be created and no offers may be accepted —
+     * editing or deleting existing rides remains allowed so users can clean
+     * up their history.
+     */
+    private void rejectIfRaceAlreadyHappened(Race race, String message) {
+        if (race.getDate().isBefore(LocalDate.now(APP_ZONE))) {
+            log.warn("Rejected action on past race {} (date={})", race.getId(), race.getDate());
+            throw new BadRequestException(message);
         }
     }
 }

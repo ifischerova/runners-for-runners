@@ -5,6 +5,7 @@ import java.util.List;
 public record RideResponse(
         String id,
         String raceId,
+        boolean racePast,
         String userId,
         String userUsername,
         String userFirstName,
