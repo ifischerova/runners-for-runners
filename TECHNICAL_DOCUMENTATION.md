@@ -734,19 +734,19 @@ npm run preview     # local preview of the production build
 
 Key capabilities the project ships with:
 
-- ✅ 9 distinct pages / views
-- ✅ React with TypeScript
-- ✅ Routing (React Router)
-- ✅ State management (Context API)
-- ✅ Forms with frontend and backend validation
-- ✅ Real backend with PostgreSQL persistence
-- ✅ JWT authentication + BCrypt password hashing
-- ✅ Responsive design
-- ✅ Frontend unit tests (Vitest, 35 tests)
-- ✅ Backend tests (JUnit 5 + Mockito + MockMvc)
-- ✅ E2E tests (Playwright, 21 scenarios)
-- ✅ Modern UI/UX
-- ✅ TypeScript typing + Bean Validation on the backend
+- 9 distinct pages / views
+- React with TypeScript
+- Routing (React Router)
+- State management (Context API)
+- Forms with frontend and backend validation
+- Real backend with PostgreSQL persistence
+- JWT authentication + BCrypt password hashing
+- Responsive design
+- Frontend unit tests (Vitest, 35 tests)
+- Backend tests (JUnit 5 + Mockito + MockMvc)
+- E2E tests (Playwright, 21 scenarios)
+- Modern UI/UX
+- TypeScript typing + Bean Validation on the backend
 
 ### What I learned
 

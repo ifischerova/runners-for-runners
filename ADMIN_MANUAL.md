@@ -194,11 +194,11 @@ sledovaných sloupců (např. `jana.novakova`).
 
 | Akce                                  | Stav                                                                                                |
 | ------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Výpis a hledání uživatelů             | ✅ Plně přes `/api/admin/users`.                                                                    |
-| Detail jednoho uživatele              | ❌ Aktuálně není dedikovaný `GET /api/admin/users/{id}`. Najdi přes `?q=<username>` v seznamu.       |
-| Smazání uživatele                     | ❌ Není endpoint. Pokud je potřeba, řeš přes DBA proces (viz §2.1).                                 |
-| Změna role uživatele                  | ❌ Není UI. Použij Flyway migraci přes DBA proces (viz §2.1).                                       |
-| Reset hesla cizímu uživateli          | ❌ Není endpoint. Workaround: požádej uživatele, ať si projde "Zapomenuté heslo".                    |
+| Výpis a hledání uživatelů             | **Lze:** plně přes `/api/admin/users`.                                                              |
+| Detail jednoho uživatele              | **Nelze:** aktuálně není dedikovaný `GET /api/admin/users/{id}`. Najdi přes `?q=<username>` v seznamu. |
+| Smazání uživatele                     | **Nelze:** není endpoint. Pokud je potřeba, řeš přes DBA proces (viz §2.1).                         |
+| Změna role uživatele                  | **Nelze:** není UI. Použij Flyway migraci přes DBA proces (viz §2.1).                               |
+| Reset hesla cizímu uživateli          | **Nelze:** není endpoint. Workaround: požádej uživatele, ať si projde "Zapomenuté heslo".            |
 
 ---
 

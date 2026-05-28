@@ -698,19 +698,19 @@ npm run preview     # lokální preview produkčního buildu
 
 Klíčové vlastnosti projektu:
 
-- ✅ 9 různých view komponent
-- ✅ React s TypeScriptem
-- ✅ Routing (React Router)
-- ✅ State management (Context API)
-- ✅ Formuláře s frontend i backend validací
-- ✅ Reálný backend s perzistencí v PostgreSQL
-- ✅ JWT autentizace + BCrypt hashování hesel
-- ✅ Responzivní design
-- ✅ Unit testy frontendu (Vitest, 35 testů)
-- ✅ Backend testy (JUnit 5 + Mockito + MockMvc)
-- ✅ E2E testy (Playwright, 21 scénářů)
-- ✅ Moderní UI/UX
-- ✅ TypeScript typování + Bean Validation na backendu
+- 9 různých view komponent
+- React s TypeScriptem
+- Routing (React Router)
+- State management (Context API)
+- Formuláře s frontend i backend validací
+- Reálný backend s perzistencí v PostgreSQL
+- JWT autentizace + BCrypt hashování hesel
+- Responzivní design
+- Unit testy frontendu (Vitest, 35 testů)
+- Backend testy (JUnit 5 + Mockito + MockMvc)
+- E2E testy (Playwright, 21 scénářů)
+- Moderní UI/UX
+- TypeScript typování + Bean Validation na backendu
 
 ### Co jsem se naučila
 
