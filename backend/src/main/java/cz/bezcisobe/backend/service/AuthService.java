@@ -223,10 +223,13 @@ public class AuthService {
     public UserResponse updateProfile(String username, UpdateProfileRequest request) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> ResourceNotFoundException.of("error.auth.user_not_found"));
-        if (request.firstName() != null) user.setFirstName(request.firstName());
-        if (request.lastName() != null) user.setLastName(request.lastName());
-        if (request.city() != null) user.setCity(request.city());
-        if (request.language() != null) user.setLanguage(request.language());
+        // Blank input is treated as "no change" rather than "clear the field" — the
+        // profile form has no explicit clear action, so a submit with an empty text
+        // input is almost always the user not editing that field.
+        if (request.firstName() != null && !request.firstName().isBlank()) user.setFirstName(request.firstName().trim());
+        if (request.lastName() != null && !request.lastName().isBlank()) user.setLastName(request.lastName().trim());
+        if (request.city() != null && !request.city().isBlank()) user.setCity(request.city().trim());
+        if (request.language() != null && !request.language().isBlank()) user.setLanguage(request.language());
         User saved = userRepository.save(user);
         return userMapper.toResponse(saved);
     }

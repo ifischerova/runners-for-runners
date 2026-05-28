@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, LoginCredentials, RegisterData, AuthResponse } from '../types';
 import { apiService } from '../services/apiService';
+import { useTranslation } from './LanguageContext';
 
 interface AuthContextType {
   user: User | null;
@@ -20,6 +21,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { locale } = useTranslation();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -45,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const register = async (data: RegisterData): Promise<void> => {
-    await apiService.register(data.username, data.email, data.password);
+    await apiService.register(data.username, data.email, data.password, locale);
   };
 
   const logout = () => {

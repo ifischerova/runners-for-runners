@@ -58,11 +58,11 @@ export const apiService = {
     return data;
   },
 
-  register: async (username: string, email: string, password: string): Promise<User> => {
+  register: async (username: string, email: string, password: string, language?: string): Promise<User> => {
     const res = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password, language }),
     });
     return handleResponse<User>(res);
   },
