@@ -15,7 +15,7 @@
 4. [Nefunkční požadavky](#4-nefunkční-požadavky)
 5. [Případy užití (use cases)](#5-případy-užití-use-cases)
 6. [Externí rozhraní](#6-externí-rozhraní)
-7. [Omezení a předpoklady](#7-omezení-a-předpoklady)
+7. [Omezení](#7-omezení)
 8. [Slovník pojmů](#8-slovník-pojmů)
 
 ---
@@ -70,7 +70,7 @@ Není cílem aplikace:
 Bezci sobě je **samostatná aplikace** (greenfield), nezávisí na žádném
 existujícím IS. Skládá se ze tří hlavních komponent:
 
-- **Frontend** – jednostránková aplikace v Reactu, běží v prohlížeči.
+- **Frontend** – jednostránková aplikace v Reactu.
 - **Backend** – REST API ve Spring Bootu, běží na JVM.
 - **Databáze** – PostgreSQL pro produkční nasazení, H2 in-memory pro
   testy.
@@ -109,27 +109,10 @@ v hlavičce `Authorization: Bearer <token>`.
 ### 2.4 Provozní prostředí
 
 - **Server:** Linux nebo Windows s JDK 17+ a PostgreSQL 14+.
-- **Klient:** moderní prohlížeč (Chrome 110+, Firefox 110+, Edge 110+,
-  Safari 16+) s podporou ES2020 a CSS Grid.
+- **Klient:** Chrome 110+, Firefox 110+, Edge 110+, Safari 16+.
 - **Síť:** HTTPS pro produkci, HTTP pro lokální vývoj.
 - **SMTP:** přístup k SMTP serveru (např. Mailtrap sandbox) pro
   odesílání verifikačních a resetových e-mailů.
-
-### 2.5 Omezení návrhu
-
-- Backend musí být napsán v Javě (Spring Boot nebo ekvivalentní).
-- Datový model musí být verzovaný (Flyway).
-- API musí být dokumentováno OpenAPI 3 (Swagger).
-- Aplikace musí běžet v kontejneru nebo přes `mvn spring-boot:run`.
-
-### 2.6 Předpoklady a závislosti
-
-- Uživatel má funkční e-mailovou schránku, kde si může vyzvednout
-  verifikační odkaz.
-- Administrátorský účet existuje od prvního spuštění (vytvořen
-  databázovou migrací V3).
-- Seznam závodů se naplňuje z veřejného zdroje (ceskybeh.cz/terminovka)
-  v rámci Flyway migrace V5/V6.
 
 ---
 
@@ -162,7 +145,6 @@ Konvence: **FRn** = funkční požadavek, **Pn** = priorita
 | FR13  | P1 | Uživatel může vyhledávat závody podle názvu, místa a data, kombinovat filtry.                                                                                          |
 | FR14  | P1 | Výsledky jsou stránkované (default 20 záznamů na stránku).                                                                                                             |
 | FR15  | P2 | Systém zobrazí detail závodu (datum, čas, místo, délka tratě, typ tratě, certifikace, odkaz na web).                                                                   |
-| FR16  | P3 | Závody se mohou automaticky doplnit ze zdroje ceskybeh.cz/terminovka při prvním startu.                                                                                |
 
 ### 3.3 Jízdy (OFFER a REQUEST)
 
@@ -185,7 +167,7 @@ Konvence: **FRn** = funkční požadavek, **Pn** = priorita
 | FR26  | P1 | Administrátor smí smazat libovolnou jízdu, i pokud není jejím vlastníkem (force-delete).                                                                               |
 | FR27  | P1 | Endpointy `/api/admin/**` jsou dostupné pouze pro `ROLE_ADMIN`. Jakýkoli jiný přístup vrátí 401 (neautentizovaný) nebo 403 (autentizovaný, ale bez práva).             |
 
-### 3.5 UI funkce (frontend bonus)
+### 3.5 UI funkce
 
 | ID    | P  | Požadavek                                                                                                                                                              |
 | ----- | -- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -223,7 +205,7 @@ Konvence: **FRn** = funkční požadavek, **Pn** = priorita
 | ID    | Požadavek                                                                                                                              |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | NFR12 | Všechny formuláře mají klientskou validaci (HTML5 + JS) i serverovou validaci (Bean Validation).                                       |
-| NFR13 | Chybové hlášky musí být v jazyce UI (cs nebo en).                                                                                      |
+| NFR13 | Klientská validace má hlášky v jazyce UI (cs/en). Serverové chyby jsou v aktuální verzi jen v češtině; lokalizace serverových chyb přes `Accept-Language` header je na roadmapě. |
 | NFR14 | UI je responzivní od šířky 320 px (telefon) po desktop.                                                                                |
 
 ### 4.4 Spolehlivost a údržba
@@ -420,11 +402,10 @@ V profilu `dev` lze e-maily přepnout na log-only režim
 | ---------------------- | -------------------------------------------------------------------------------------- |
 | PostgreSQL 14+         | Hlavní úložiště dat                                                                    |
 | SMTP server (Mailtrap) | Doručování verifikačních a resetových e-mailů                                          |
-| ceskybeh.cz/terminovka | Zdroj seedovaných závodů (jednorázově vytažen v Flyway migracích V5/V6)                |
 
 ---
 
-## 7. Omezení a předpoklady
+## 7. Omezení
 
 ### 7.1 Technická omezení
 
@@ -438,12 +419,6 @@ V profilu `dev` lze e-maily přepnout na log-only režim
 - Aplikace neslouží k oficiální registraci na závod.
 - Aplikace nevynucuje, aby řidič opravdu jel – je to jen platforma pro
   domluvu mezi uživateli.
-
-### 7.3 Předpoklady
-
-- Uživatel má funkční e-mailovou schránku.
-- Server má přístup k internetu pro stahování závodů a posílání mailů.
-- Administrátor existuje od prvního spuštění (vytvořen Flyway migrací V3).
 
 ---
 
@@ -464,7 +439,3 @@ V profilu `dev` lze e-maily přepnout na log-only režim
 | **Defence in depth**    | Princip vrstvených bezpečnostních kontrol – když selže jedna vrstva, druhá ještě chytne útočníka.                                            |
 | **Stateless**           | Vlastnost backendu, kdy server nedrží žádnou session – každý request se autentizuje samostatně přes JWT.                                    |
 | **ROLE_USER / ROLE_ADMIN** | Spring Security role. ROLE_ADMIN má všechna oprávnění ROLE_USER plus přístup k `/api/admin/**`.                                          |
-
----
-
-**Konec dokumentu SRS.**
