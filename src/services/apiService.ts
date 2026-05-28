@@ -1,4 +1,4 @@
-import { User, Race, Ride, RaceCalendar, TrackLength, TrackType, AuthResponse, RideType } from '../types';
+import { User, Race, Ride, RaceCalendar, TrackLength, TrackType, AuthResponse, RideType, UserResponse } from '../types';
 
 const API_BASE = 'http://localhost:8080/api';
 const TOKEN_KEY = 'bezci_sobe_token';
@@ -132,6 +132,27 @@ export const apiService = {
     } catch {
       return null;
     }
+  },
+
+  changePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
+    const res = await fetch(`${API_BASE}/auth/change-password`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ message: 'Chyba serveru' }));
+      throw new ApiError(body.message || `HTTP ${res.status}`, res.status);
+    }
+  },
+
+  updateProfile: async (data: { firstName?: string; lastName?: string; city?: string; language?: string }): Promise<UserResponse> => {
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<UserResponse>(res);
   },
 
   // Races

@@ -9,9 +9,12 @@ interface AuthContextType {
   login: (credentials: LoginCredentials) => Promise<AuthResponse>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
+  updateProfile: (data: { firstName?: string; lastName?: string; city?: string; language?: string }) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Exported so tests can mount a component with a hand-rolled context value
+// without spinning up the full AuthProvider + fetch mocks.
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -49,6 +52,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
+  const updateProfile = async (data: { firstName?: string; lastName?: string; city?: string; language?: string }) => {
+    const updated = await apiService.updateProfile(data);
+    // Backend returns string[] roles; we coerce into the User shape used by the UI.
+    setUser((prev) => {
+      if (!prev) {
+        return {
+          id: updated.id,
+          username: updated.username,
+          email: updated.email,
+          firstName: updated.firstName,
+          lastName: updated.lastName,
+          city: updated.city,
+          language: updated.language,
+          roles: (updated.roles as unknown) as User['roles'],
+        };
+      }
+      return {
+        ...prev,
+        firstName: updated.firstName,
+        lastName: updated.lastName,
+        city: updated.city,
+        language: updated.language,
+      };
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -58,6 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         register,
         logout,
+        updateProfile,
       }}
     >
       {children}

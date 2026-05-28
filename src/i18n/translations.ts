@@ -316,6 +316,27 @@ const cs = {
   'profile.rides.title': 'Moje jízdy',
   'profile.rides.placeholder1': 'Zde se budou zobrazovat vaše vytvořené a rezervované jízdy.',
   'profile.rides.placeholder2': 'Tato funkce bude dostupná v další verzi aplikace.',
+  // basic-info self-service section
+  'profile.basicInfo.title': 'Základní informace',
+  'profile.basicInfo.save': 'Uložit',
+  'profile.basicInfo.saved': 'Profil uložen.',
+  'profile.basicInfo.error': 'Nepodařilo se uložit profil.',
+  'profile.language.label': 'Jazyk',
+  'profile.language.cs': 'Čeština',
+  'profile.language.en': 'Angličtina',
+  // change-password section
+  'profile.changePassword.title': 'Změna hesla',
+  'profile.changePassword.current': 'Aktuální heslo',
+  'profile.changePassword.new': 'Nové heslo',
+  'profile.changePassword.confirm': 'Potvrzení nového hesla',
+  'profile.changePassword.submit': 'Změnit heslo',
+  'profile.changePassword.mismatch': 'Nová hesla se neshodují.',
+  'profile.changePassword.success': 'Heslo bylo změněno.',
+  'profile.changePassword.error': 'Nepodařilo se změnit heslo.',
+  // first-name / last-name labels for the basic-info form
+  'profile.firstName.label': 'Jméno',
+  'profile.lastName.label': 'Příjmení',
+  'profile.city.label': 'Město',
 
   // ===== terms =====
   'terms.title': 'Obchodní podmínky',
@@ -655,6 +676,27 @@ const en: Record<keyof typeof cs, string> = {
   'profile.rides.title': 'My rides',
   'profile.rides.placeholder1': 'Your created and reserved rides will appear here.',
   'profile.rides.placeholder2': 'This feature will be available in a future release.',
+  // basic-info self-service section
+  'profile.basicInfo.title': 'Basic information',
+  'profile.basicInfo.save': 'Save',
+  'profile.basicInfo.saved': 'Profile saved.',
+  'profile.basicInfo.error': 'Failed to save profile.',
+  'profile.language.label': 'Language',
+  'profile.language.cs': 'Czech',
+  'profile.language.en': 'English',
+  // change-password section
+  'profile.changePassword.title': 'Change password',
+  'profile.changePassword.current': 'Current password',
+  'profile.changePassword.new': 'New password',
+  'profile.changePassword.confirm': 'Confirm new password',
+  'profile.changePassword.submit': 'Change password',
+  'profile.changePassword.mismatch': 'New passwords do not match.',
+  'profile.changePassword.success': 'Password changed.',
+  'profile.changePassword.error': 'Failed to change password.',
+  // first-name / last-name labels for the basic-info form
+  'profile.firstName.label': 'First name',
+  'profile.lastName.label': 'Last name',
+  'profile.city.label': 'City',
 
   // ===== terms =====
   'terms.title': 'Terms of service',
