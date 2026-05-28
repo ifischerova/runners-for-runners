@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -24,7 +25,8 @@ public class RaceService {
 
     @Transactional(readOnly = true)
     public List<RaceResponse> getAllRaces() {
-        return raceRepository.findAll().stream()
+        LocalDate today = LocalDate.now(ZoneId.of("Europe/Prague"));
+        return raceRepository.findAllByDateGreaterThanEqualOrderByDateAsc(today).stream()
                 .map(raceMapper::toResponse)
                 .toList();
     }

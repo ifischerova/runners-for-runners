@@ -24,6 +24,35 @@ export const RacesPage = () => {
     notes: '',
   });
 
+  const [toast, setToast] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  const showToast = (kind: 'success' | 'error', text: string) => setToast({ kind, text });
+
+  const [pendingConfirm, setPendingConfirm] = useState<{
+    message: string;
+    confirmLabel: string;
+    danger?: boolean;
+    onConfirm: () => Promise<void> | void;
+  } | null>(null);
+  const [confirmBusy, setConfirmBusy] = useState(false);
+
+  const runConfirm = async () => {
+    if (!pendingConfirm) return;
+    setConfirmBusy(true);
+    try {
+      await pendingConfirm.onConfirm();
+    } finally {
+      setConfirmBusy(false);
+      setPendingConfirm(null);
+    }
+  };
+
   useEffect(() => {
     const loadRaces = async () => {
       const loadedRaces = await apiService.getRaces();
@@ -53,13 +82,13 @@ export const RacesPage = () => {
     e.preventDefault();
 
     if (!isAuthenticated || !user) {
-      alert(t('races.alert.loginToCreate'));
+      showToast('error', t('races.alert.loginToCreate'));
       navigate('/login');
       return;
     }
 
     if (!selectedRace) {
-      alert(t('races.alert.pickRaceFirst'));
+      showToast('error', t('races.alert.pickRaceFirst'));
       return;
     }
 
@@ -86,30 +115,33 @@ export const RacesPage = () => {
         notes: '',
       });
       setShowCreateForm(false);
-      alert(t('races.alert.createSuccess'));
+      showToast('success', t('races.alert.createSuccess'));
     } catch {
-      alert(t('races.alert.createError'));
+      showToast('error', t('races.alert.createError'));
     }
   };
 
-  const handleDeleteRide = async (rideId: string) => {
-    if (!window.confirm(t('races.alert.deleteConfirm'))) {
-      return;
-    }
-
-    try {
-      await apiService.deleteRide(rideId);
-      const loadedRides = await apiService.getRidesByRace(selectedRace);
-      setRides(loadedRides);
-      alert(t('races.alert.deleteSuccess'));
-    } catch {
-      alert(t('races.alert.deleteError'));
-    }
+  const handleDeleteRide = (rideId: string) => {
+    setPendingConfirm({
+      message: t('races.alert.deleteConfirm'),
+      confirmLabel: t('common.delete'),
+      danger: true,
+      onConfirm: async () => {
+        try {
+          await apiService.deleteRide(rideId);
+          const loadedRides = await apiService.getRidesByRace(selectedRace);
+          setRides(loadedRides);
+          showToast('success', t('races.alert.deleteSuccess'));
+        } catch {
+          showToast('error', t('races.alert.deleteError'));
+        }
+      },
+    });
   };
 
   const handleAcceptRide = async (rideId: string) => {
     if (!isAuthenticated || !user) {
-      alert(t('races.alert.loginToAccept'));
+      showToast('error', t('races.alert.loginToAccept'));
       navigate('/login');
       return;
     }
@@ -118,35 +150,50 @@ export const RacesPage = () => {
       await apiService.acceptRide(rideId);
       const loadedRides = await apiService.getRidesByRace(selectedRace);
       setRides(loadedRides);
-      alert(t('races.alert.acceptSuccess'));
+      showToast('success', t('races.alert.acceptSuccess'));
     } catch (error) {
-      alert(error instanceof Error ? error.message : t('races.alert.acceptError'));
+      showToast('error', error instanceof Error ? error.message : t('races.alert.acceptError'));
     }
   };
 
-  const handleCancelAcceptance = async (rideId: string) => {
+  const handleCancelAcceptance = (rideId: string) => {
     if (!isAuthenticated || !user) {
       return;
     }
-
-    if (!window.confirm(t('races.alert.cancelConfirm'))) {
-      return;
-    }
-
-    try {
-      await apiService.cancelRideAcceptance(rideId);
-      const loadedRides = await apiService.getRidesByRace(selectedRace);
-      setRides(loadedRides);
-      alert(t('races.alert.cancelSuccess'));
-    } catch (error) {
-      alert(error instanceof Error ? error.message : t('races.alert.cancelError'));
-    }
+    setPendingConfirm({
+      message: t('races.alert.cancelConfirm'),
+      confirmLabel: t('common.confirm'),
+      onConfirm: async () => {
+        try {
+          await apiService.cancelRideAcceptance(rideId);
+          const loadedRides = await apiService.getRidesByRace(selectedRace);
+          setRides(loadedRides);
+          showToast('success', t('races.alert.cancelSuccess'));
+        } catch (error) {
+          showToast('error', error instanceof Error ? error.message : t('races.alert.cancelError'));
+        }
+      },
+    });
   };
 
   const selectedRaceData = races.find(r => r.id === selectedRace);
 
   return (
     <div className="section-container animate-fade-in">
+      {toast && (
+        <div
+          role={toast.kind === 'error' ? 'alert' : 'status'}
+          aria-live={toast.kind === 'error' ? 'assertive' : 'polite'}
+          className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl shadow-lg border-2 max-w-md w-[calc(100%-2rem)] text-center font-medium animate-fade-in ${
+            toast.kind === 'success'
+              ? 'bg-emerald-50 border-emerald-300 text-emerald-800 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-100'
+              : 'bg-red-50 border-red-300 text-red-800 dark:bg-red-950/60 dark:border-red-800 dark:text-red-100'
+          }`}
+        >
+          {toast.text}
+        </div>
+      )}
+
       {/* Hero Section */}
       <div className="text-center mb-10">
         <h1 className="text-4xl md:text-5xl/tight font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-3 leading-tight pb-[5px]">
@@ -486,6 +533,47 @@ export const RacesPage = () => {
           >
             {t('races.rides.loginPrompt.cta')}
           </button>
+        </div>
+      )}
+
+      {pendingConfirm && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="races-confirm-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => !confirmBusy && setPendingConfirm(null)}
+        >
+          <div
+            className="bg-white dark:bg-surface-800 rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="races-confirm-title" className="text-lg font-bold text-dark-800 dark:text-dark-50 mb-3">
+              {pendingConfirm.message}
+            </h3>
+            <div className="mt-4 flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => setPendingConfirm(null)}
+                disabled={confirmBusy}
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-surface-600 text-dark-700 dark:text-dark-200 hover:bg-gray-50 dark:hover:bg-surface-700 disabled:opacity-50"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={runConfirm}
+                disabled={confirmBusy}
+                className={`px-4 py-2 rounded-lg text-white disabled:opacity-50 ${
+                  pendingConfirm.danger
+                    ? 'bg-red-600 hover:bg-red-700'
+                    : 'bg-primary-600 hover:bg-primary-700'
+                }`}
+              >
+                {pendingConfirm.confirmLabel}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

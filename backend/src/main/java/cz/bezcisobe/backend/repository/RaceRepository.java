@@ -8,8 +8,17 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public interface RaceRepository extends JpaRepository<Race, Long> {
+
+    /**
+     * Races taking place on {@code date} or later, sorted by date ascending
+     * (soonest first). Used to populate the "all races" dropdown — past races
+     * are filtered at the DB level so we never overfetch.
+     */
+    List<Race> findAllByDateGreaterThanEqualOrderByDateAsc(LocalDate date);
+
 
     /**
      * Paginated full-text-ish search over races. Matches the substring
