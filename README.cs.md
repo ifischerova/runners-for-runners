@@ -61,7 +61,7 @@ filter/provider/UserDetails), `validation/` (vlastní pravidlo
   při první návštěvě respektuje OS `prefers-color-scheme` a poté si
   pamatuje uživatelovu volbu; v tmavém režimu se brand překresluje do
   fialovo-modrých tónů
-- 35 unit testů frontendu (Vitest) + 21 E2E scénářů (Playwright)
+- 35 unit testů frontendu (Vitest) + 22 E2E scénářů (Playwright)
 - Backend testy s JUnit 5 + Mockito + Spring MockMvc + Spring Security Test
   (controllery, servisní vrstva, vlastní validátor)
 

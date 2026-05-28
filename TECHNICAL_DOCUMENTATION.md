@@ -376,7 +376,7 @@ npm run test:coverage # See how much code is covered
    - Displaying existing rides
    - Cancelling ride creation
 
-**21 E2E tests total**
+**22 E2E tests total**
 
 **Browsers:**
 
@@ -744,7 +744,7 @@ Key capabilities the project ships with:
 - Responsive design
 - Frontend unit tests (Vitest, 35 tests)
 - Backend tests (JUnit 5 + Mockito + MockMvc)
-- E2E tests (Playwright, 21 scenarios)
+- E2E tests (Playwright, 22 scenarios)
 - Modern UI/UX
 - TypeScript typing + Bean Validation on the backend
 

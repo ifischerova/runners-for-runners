@@ -354,7 +354,7 @@ npm run test:coverage # Zjistí, kolik kódu je pokryto testy
    - Zobrazení existujících jízd
    - Zrušení vytváření jízdy
 
-**Celkem 21 E2E testů**
+**Celkem 22 E2E testů**
 
 **Prohlížeče:**
 
@@ -708,7 +708,7 @@ Klíčové vlastnosti projektu:
 - Responzivní design
 - Unit testy frontendu (Vitest, 35 testů)
 - Backend testy (JUnit 5 + Mockito + MockMvc)
-- E2E testy (Playwright, 21 scénářů)
+- E2E testy (Playwright, 22 scénářů)
 - Moderní UI/UX
 - TypeScript typování + Bean Validation na backendu
 

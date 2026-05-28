@@ -61,11 +61,11 @@ flowchart LR
 | Rozhodnutí                | Důvod                                                                                                                |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | Stateless JWT             | Server nedrží session úložiště. Snadné horizontální škálování, snadná dockerizace.                                   |
-| PostgreSQL přes Flyway    | Schéma je verzované, deterministické, voltatelné. V testech H2 in-memory, abychom nepotřebovali Postgres.            |
+| PostgreSQL přes Flyway    | Schéma je verzované, deterministické, volatelné. V testech H2 in-memory, abychom nepotřebovali Postgres.             |
 | Spring Boot 3.2           | Standardní volba pro Java backend; Jakarta EE 9+ namespace, Spring Security 6, Hibernate 6.                          |
 | React 18 + TypeScript     | Komponentový SPA frontend s typovou bezpečností. Vite jako rychlý dev server / bundler.                              |
 | OpenAPI 3 (springdoc)     | Generování dokumentace přímo z anotovaného kódu. Swagger UI s JWT bearer pro pohodlné volání endpointů.              |
-| Mail starter + log-only   | Pro produkci JavaMailSender, pro vývoj log-only fallback (e-mail se vypíše do konzole, žádná SMTP infra není nutná). |
+| Mail starter + log-only   | Produkce posílá přes `JavaMailSender` (`app.mail.log-only=false` jako produkční default). Profil `dev` přepíná na log-only fallback, kdy se obsah e-mailu vypíše do konzole místo otevření SMTP konektivity — pohodlné pro lokální vývoj bez SMTP. **V produkci log-only NESMÍ být zapnutý**, jinak by se verifikační a resetovací tokeny dostaly do aplikačních logů. |
 
 ---
 
@@ -767,7 +767,7 @@ Pattern v `application.yml`:
 
 ```mermaid
 flowchart TB
-    E2E[E2E testy<br/>Playwright<br/>21 scénářů]
+    E2E[E2E testy<br/>Playwright<br/>22 scénářů]
     INT[Integrační testy<br/>MockMvc + H2<br/>~10 testů]
     UNIT[Unit testy<br/>JUnit 5 + Mockito + Vitest<br/>~60 testů]
 
@@ -829,7 +829,3 @@ napsané v README, test selže a build neprojde.
   nakonfigurují JPA, Security, MailSender.
 - **Schema as code** – Flyway migrace versionované v gitu, žádné
   ručně psané ALTER TABLE v produkci.
-
----
-
-**Konec dokumentu SDD.**
