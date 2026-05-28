@@ -82,6 +82,11 @@ Pro vytvoření nebo přijetí jízdy se musíš zaregistrovat.
 4. Pokud je všechno v pořádku, stránka se přepne na **"Zkontroluj si
    e-mail"** s informací, kam jsme odkaz poslali.
 
+> **Jazyk e-mailu:** ověřovací e-mail i pozdější systémové notifikace
+> dorazí v jazyce, který má UI aplikace nastavený v okamžiku registrace
+> (přepíná se vlajkou v hlavičce). Preferenci jazyka si můžeš později
+> kdykoli změnit v Profilu.
+
 > **Co když se objeví červená chyba?**
 > - "Uživatelské jméno již existuje" – zvol jiné.
 > - "Email již existuje" – buď máš účet, použij Zapomenuté heslo,
@@ -288,7 +293,7 @@ Poptávku můžeš stejně jako nabídku upravovat a mazat.
 1. V menu klikni **Profil**.
 2. Uvidíš:
    - Uvítací větu se svým uživatelským jménem.
-   - Sekci **Základní informace** — editovatelná pole **Jméno**, **Příjmení**, **Město** a **Jazyk** (CZ/EN). E-mail a uživatelské jméno jsou jen pro čtení. Tlačítkem **Uložit** uložíš změny.
+   - Sekci **Základní informace** — editovatelná pole **Jméno**, **Příjmení**, **Město** a **Jazyk** (CZ/EN). E-mail a uživatelské jméno jsou jen pro čtení. Tlačítkem **Uložit** uložíš změny. Pokud necháš některé pole prázdné, jeho původní hodnota se zachová — prázdný vstup je považován za "beze změny", ne za vymazání.
    - Sekci **Změna hesla** — vyplň **Aktuální heslo**, **Nové heslo** a **Potvrzení nového hesla**, klikni **Změnit heslo**. Po úspěchu obdržíš na e-mail potvrzení.
    - Sekci **Moje jízdy** (zobrazí seznam tvých vlastních jízd).
    - Sekci **Nebezpečná zóna** se smazáním účtu (viz "Jak smažu svůj účet?" v FAQ).

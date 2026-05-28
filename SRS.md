@@ -126,7 +126,7 @@ Konvence: **FRn** = funkční požadavek, **Pn** = priorita
 | ID    | P  | Požadavek                                                                                                                                                              |
 | ----- | -- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | FR1   | P1 | Systém umožní anonymnímu návštěvníkovi založit účet zadáním unikátního uživatelského jména, e-mailu a hesla.                                                            |
-| FR2   | P1 | Po registraci systém vygeneruje verifikační token s platností 24 hodin a pošle ho uživateli e-mailem.                                                                  |
+| FR2   | P1 | Po registraci systém vygeneruje verifikační token s platností 24 hodin a pošle ho uživateli e-mailem. Jazyk e-mailu (cs / en) odpovídá lokále UI v okamžiku registrace — frontend předává pole `language` v request payloadu, backend ho uloží jako preferenci uživatele.            |
 | FR3   | P1 | Účet je neaktivní (`email_verified = false`), dokud uživatel neklikne na verifikační odkaz.                                                                            |
 | FR4   | P1 | Pokus o přihlášení neověřeným účtem vrátí HTTP 403 s vysvětlující hláškou.                                                                                              |
 | FR5   | P2 | Uživatel si může vyžádat nový verifikační odkaz (pokud původní vypršel nebo se ztratil).                                                                               |
@@ -137,7 +137,7 @@ Konvence: **FRn** = funkční požadavek, **Pn** = priorita
 | FR10  | P1 | Uživatel může pomocí reset tokenu nastavit nové heslo. Úspěšný reset zároveň označí účet jako ověřený.                                                                  |
 | FR11  | P1 | Uživatel může zobrazit a upravit svůj profil (jméno, e-mail [r/o], město, jazyk, role [r/o]).                                                                          |
 | FR33  | P1 | Přihlášený uživatel může změnit své heslo z profilu (zadává aktuální + nové). Po úspěchu obdrží e-mailové potvrzení.                                                    |
-| FR34  | P1 | Přihlášený uživatel může upravit jméno, příjmení, město a jazykovou preferenci (cs/en).                                                                                |
+| FR34  | P1 | Přihlášený uživatel může upravit jméno, příjmení, město a jazykovou preferenci (cs/en). Prázdný / pouze-bílé-znaky vstup u textových polí je interpretován jako "beze změny" (zachová předchozí hodnotu), neprázdný vstup je oříznut o krajní mezery.                                |
 | FR35  | P1 | Přihlášený uživatel může smazat svůj účet (s potvrzením heslem). Cascade ruší jeho jízdy a posílá e-maily dotčeným uživatelům.                                          |
 | FR36  | P1 | Při přijetí / zrušení přijetí / smazání jízdy se odesílají e-mailové notifikace dotčeným stranám.                                                                       |
 | FR37  | P1 | Při administrátorském smazání jízdy se odesílají e-mailové notifikace řidiči i všem přijatým spolujezdcům.                                                              |

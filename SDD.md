@@ -485,7 +485,11 @@ samoobsluhu profilu:
   aktuálního hesla, nové heslo se hashuje BCryptem, posílá se
   e-mailové potvrzení).
 - `PUT /api/auth/me` — úprava jména, příjmení, města a jazykové
-  preference. E-mail a uživatelské jméno jsou neměnné.
+  preference. E-mail a uživatelské jméno jsou neměnné. Prázdný nebo
+  pouze-bílé-znaky vstup u textového pole je v `AuthService.updateProfile`
+  ignorován (předchozí hodnota zůstává), neprázdný vstup je oříznut o
+  krajní mezery; formulář nemá explicitní "vymazat" akci, takže prázdné
+  pole znamená "tento řádek neměnit".
 - `POST /api/auth/delete-account` — smazání účtu s potvrzením
   heslem. Kaskáda: ruší vlastní jízdy (s e-mailem všem dotčeným
   spolujezdcům), odhlašuje uživatele z cizích jízd (s e-mailem
@@ -536,11 +540,11 @@ sequenceDiagram
     participant SMTP
 
     U->>FE: vyplní formulář
-    FE->>API: POST /api/auth/register
+    FE->>API: POST /api/auth/register {…, language=UI lokála}
     API->>AS: register(request)
     AS->>UR: existsByUsername / existsByEmail
     UR-->>AS: false
-    AS->>UR: save(User{emailVerified=false})
+    AS->>UR: save(User{emailVerified=false, language=request.language ?? "cs"})
     UR-->>AS: User(id)
     AS->>VT: save(VerificationToken{token, expiresAt})
     AS->>ES: sendVerificationEmail(email, token)
