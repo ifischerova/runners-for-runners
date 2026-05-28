@@ -41,6 +41,11 @@ constraint), `exception/` (typed exceptions + global handler).
 ## Features
 
 - Browse Czech running races; filter by name/place/date with pagination
+- The race-picker list shows only upcoming races (today and later,
+  Europe/Prague timezone), sorted by date ascending; past races are
+  filtered out at the DB level so the client never overfetches
+- In-app toasts and confirmation modals (no browser-native
+  `alert` / `confirm`); all copy localized cs/en
 - Create, update, accept, and cancel ride OFFERs and REQUESTs
 - User registration with **mandatory email verification** (token emailed via
   SMTP, login blocked until the user clicks the link)
@@ -57,6 +62,13 @@ constraint), `exception/` (typed exceptions + global handler).
   validation failures, and unexpected errors
 - Bilingual UI (Czech / English) — single-flag header switcher that flips
   to the *other* language with one click
+- **Profile self-service:** change password, edit basic info (first name,
+  last name, city), set language preference, delete account
+- **Localized email notifications and API error messages (cs + en)** —
+  resolved from the logged-in user's preference, falling back to the
+  `Accept-Language` header, then `cs`
+- **Ride event notifications:** passenger accept / cancel / delete by
+  driver / admin force-delete each fire an email to the affected parties
 - Light **and** dark theme — floating Sun/Moon toggle on every page,
   follows OS `prefers-color-scheme` on the first visit, persists user
   overrides; in dark mode the brand recolours to violet + sky-blue

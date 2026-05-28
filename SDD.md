@@ -206,6 +206,7 @@ erDiagram
         VARCHAR first_name
         VARCHAR last_name
         VARCHAR city
+        VARCHAR language
         BOOLEAN email_verified
     }
 
@@ -325,6 +326,7 @@ erDiagram
 | V8 `remove_admin_from_rides.sql`                 | Vyčištění – admin nevystupuje v sample datech jako spolujezdec.                             |
 | V9 `seed_international_users_and_rides.sql`      | 10 mezinárodních uživatelů s vlastními jízdami.                                             |
 | V10 `email_verification_and_reset.sql`           | Sloupec `email_verified` + tabulky `verification_tokens` a `password_reset_tokens`.         |
+| V11 `user_language.sql`                          | Sloupec `language` v tabulce `users` (cs/en) pro jazykovou preferenci.                      |
 
 ---
 
@@ -337,7 +339,7 @@ erDiagram
 | `AuthService`           | Service        | Registrace, přihlášení, e-mail verifikace, reset hesla. Centralizovaná autentizační logika. |
 | `EmailService`          | Service        | Wrapper nad `JavaMailSender`. Skládá HTML/text těla, sestavuje URL z `APP_URL`.          |
 | `RideService`           | Service        | CRUD jízd, accept/cancel, validace vlastnictví, blok pro proběhlé závody (`race.date < dnes` → `BadRequestException`). |
-| `RaceService`           | Service        | Listing + paginované hledání závodů.                                                     |
+| `RaceService`           | Service        | Listing + paginované hledání závodů. `getAllRaces()` deleguje na `RaceRepository.findAllByDateGreaterThanEqualOrderByDateAsc(today)`, kde `today` je `LocalDate.now(ZoneId.of("Europe/Prague"))`. Filtr proběhlých závodů se aplikuje na databázové úrovni; klient si tak nikdy nemusí stahovat ani filtrovat staré závody. Časové pásmo `Europe/Prague` je konzistentní s ostatními past-race kontrolami v `RideService`. |
 | `AdminService`          | Service        | Administrátorské operace nad uživateli a jízdami.                                        |
 | `JwtTokenProvider`      | Security       | Generování a parsing JWT, validace podpisu a expirace.                                   |
 | `JwtAuthenticationFilter` | Filter        | Pro každý request načte JWT z hlavičky a vyplní SecurityContext.                          |
@@ -439,6 +441,82 @@ omezení uvedené v "Missing features" v
 [TECHNICAL_DOCUMENTATION.md](TECHNICAL_DOCUMENTATION.md). V produkci
 by se přidal Spring Security `RateLimiter` filter nebo proxy-level
 limit.
+
+### 5.7 Lokalizace (i18n)
+
+Backend zveřejňuje cs/en chybové hlášky a e-mailové šablony přes
+Spring `MessageSource`.
+
+**Konfigurace:** `I18nConfig.java` registruje `MessageSource`
+(basenames `messages_*.properties` a
+`ValidationMessages_*.properties`, kódování UTF-8, žádný systémový
+fallback) a `LocalValidatorFactoryBean` pinovaný na stejný source.
+
+**Resolver locale:** `UserLocaleResolver` (vlastní
+`LocaleResolver` registrovaný jako bean `localeResolver`) určí
+`Locale` podle priority:
+
+1. Jazyková preference přihlášeného uživatele
+   (`UserDetailsImpl.getLanguage()`).
+2. Hlavička `Accept-Language` (akceptuje cs|en).
+3. Výchozí `cs`.
+
+**Klíče:**
+
+- `validation.<field>.<rule>` — Bean Validation zprávy (DTO
+  anotace).
+- `error.<area>.<reason>` — business chybové hlášky vyhozené ze
+  service vrstvy.
+- `email.<event>[.<recipient>].{subject|body}` — předměty a těla
+  e-mailů.
+
+**Architektonický důsledek:** `BadRequestException`,
+`ResourceNotFoundException`, `DuplicateResourceException`
+implementují interface `LocalizedException` a poskytují statickou
+továrnu `.of(key, args)`. `GlobalExceptionHandler` resolvuje klíče
+pomocí `LocaleContextHolder.getLocale()`.
+
+### 5.8 Profilová samoobsluha
+
+Aktuální verze aplikace nabízí přihlášenému uživateli plnou
+samoobsluhu profilu:
+
+- `POST /api/auth/change-password` — změna hesla (ověření
+  aktuálního hesla, nové heslo se hashuje BCryptem, posílá se
+  e-mailové potvrzení).
+- `PUT /api/auth/me` — úprava jména, příjmení, města a jazykové
+  preference. E-mail a uživatelské jméno jsou neměnné.
+- `POST /api/auth/delete-account` — smazání účtu s potvrzením
+  heslem. Kaskáda: ruší vlastní jízdy (s e-mailem všem dotčeným
+  spolujezdcům), odhlašuje uživatele z cizích jízd (s e-mailem
+  řidiči), maže verification i password reset tokeny a nakonec
+  i samotného uživatele. Operace je `@Transactional`, takže při
+  jakékoli chybě se rollbackuje.
+
+### E-mailové notifikace
+
+`EmailService` poskytuje 9 typovaných metod, každá s parametrem
+`Locale`. Volání jsou wrappena v `try/catch` v každém volajícím
+(`AuthService`, `RideService`), takže selhání odeslání zaloguje
+WARN ale nezastaví business operaci.
+
+Události:
+
+- Registrace + reset hesla (existující) → odesílá
+  `sendVerificationEmail` / `sendPasswordResetEmail`.
+- Změna hesla z profilu → `sendPasswordChangedEmail`.
+- Smazání účtu → `sendAccountDeletedEmail` + kaskáda na dotčené
+  řidiče/spolujezdce.
+- Přijetí jízdy → `sendRideAcceptedEmail` (driver).
+- Zrušení přijetí → `sendRideAcceptanceCancelledEmail` (driver).
+- Smazání jízdy řidičem → `sendRideDeletedByDriverEmail` (všichni
+  přijatí spolujezdci).
+- Smazání jízdy administrátorem →
+  `sendRideDeletedByAdminToDriverEmail` +
+  `sendRideDeletedByAdminToPassengerEmail`.
+
+Lokalizace e-mailových obsahů přes stejný `MessageSource` jako
+chybové hlášky.
 
 ---
 
@@ -677,6 +755,30 @@ by se přidal `RequireAuth` wrapper.)
    zprávy.
 3. **Verify / forgot / reset endpointy** neprozradí, jestli e-mail
    existuje – z UX pohledu vždy ukazujeme stejné potvrzení.
+
+### 7.5 Hlášky a potvrzovací dialogy
+
+Hláška o úspěchu/chybě se zobrazuje jako fixní toast banner v horní
+části stránky (auto-dismiss po 4 s, `role="status"` pro úspěch a
+`role="alert"` pro chybu). Potvrzovací dialogy (smazání jízdy, zrušení
+přijetí) používají vlastní modální komponentu s `aria-modal` +
+`aria-labelledby`; backdrop click zavírá modal pouze pokud neprobíhá
+API volání, tlačítka jsou disabled během letu, aby uživatel nemohl
+akci spustit dvakrát. Texty hlášek i tlačítek pocházejí z i18n
+slovníku (cs/en); native `window.alert` / `window.confirm` se v UI
+nikde nepoužívají.
+
+### 7.6 Robustnost — idempotentní `useEffect`
+
+`VerifyEmailPage` volá `apiService.verifyEmail(token)` z `useEffect`
+přesně jednou na načtení stránky. Protože React 18 Strict Mode v dev
+režimu mountuje komponenty dvakrát, je samotný API call obalený
+strážním `useRef` flagem — bez něj by druhý mount spotřeboval token
+podruhé a uživatel by viděl chybu "token už byl použit", přestože je
+jeho účet úspěšně ověřen. Produkční build Strict Mode dvojnásobný
+mount nedělá, takže chování zůstává jednovolací; strážní pattern je
+ale obecně užitečný pro jakýkoli one-shot effect, který má vedlejší
+efekty na backendu.
 
 ---
 

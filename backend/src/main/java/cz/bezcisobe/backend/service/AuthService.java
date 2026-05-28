@@ -3,9 +3,11 @@ package cz.bezcisobe.backend.service;
 import cz.bezcisobe.backend.dto.mapper.UserMapper;
 import cz.bezcisobe.backend.dto.request.LoginRequest;
 import cz.bezcisobe.backend.dto.request.RegisterRequest;
+import cz.bezcisobe.backend.dto.request.UpdateProfileRequest;
 import cz.bezcisobe.backend.dto.response.AuthResponse;
 import cz.bezcisobe.backend.dto.response.UserResponse;
 import cz.bezcisobe.backend.entity.PasswordResetToken;
+import cz.bezcisobe.backend.entity.Ride;
 import cz.bezcisobe.backend.entity.Role;
 import cz.bezcisobe.backend.entity.User;
 import cz.bezcisobe.backend.entity.VerificationToken;
@@ -13,6 +15,7 @@ import cz.bezcisobe.backend.exception.BadRequestException;
 import cz.bezcisobe.backend.exception.DuplicateResourceException;
 import cz.bezcisobe.backend.exception.ResourceNotFoundException;
 import cz.bezcisobe.backend.repository.PasswordResetTokenRepository;
+import cz.bezcisobe.backend.repository.RideRepository;
 import cz.bezcisobe.backend.repository.UserRepository;
 import cz.bezcisobe.backend.repository.VerificationTokenRepository;
 import cz.bezcisobe.backend.security.JwtTokenProvider;
@@ -30,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -46,6 +50,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final RideRepository rideRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final UserMapper userMapper;
@@ -77,17 +82,19 @@ public class AuthService {
     public UserResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.username())) {
             log.warn("Registration rejected: username '{}' already taken", request.username());
-            throw new DuplicateResourceException("Uživatelské jméno již existuje");
+            throw DuplicateResourceException.of("error.auth.username_exists");
         }
         if (userRepository.existsByEmail(request.email())) {
             log.warn("Registration rejected: email '{}' already taken", request.email());
-            throw new DuplicateResourceException("Email již existuje");
+            throw DuplicateResourceException.of("error.auth.email_exists");
         }
 
+        String lang = request.language() == null || request.language().isBlank() ? "cs" : request.language();
         User user = User.builder()
                 .username(request.username())
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
+                .language(lang)
                 .emailVerified(false)
                 .roles(Set.of(Role.ROLE_USER))
                 .build();
@@ -101,13 +108,13 @@ public class AuthService {
     @Transactional
     public void verifyEmail(String token) {
         VerificationToken vt = verificationTokenRepository.findByToken(token)
-                .orElseThrow(() -> new BadRequestException("Neplatný ověřovací odkaz"));
+                .orElseThrow(() -> BadRequestException.of("error.auth.invalid_verification_token"));
 
         if (vt.isUsed()) {
-            throw new BadRequestException("Tento ověřovací odkaz již byl použit");
+            throw BadRequestException.of("error.auth.verification_token_used");
         }
         if (vt.isExpired()) {
-            throw new BadRequestException("Ověřovací odkaz vypršel. Vyžádejte si nový.");
+            throw BadRequestException.of("error.auth.verification_token_expired");
         }
 
         User user = vt.getUser();
@@ -160,20 +167,20 @@ public class AuthService {
                 .build();
         passwordResetTokenRepository.save(prt);
 
-        emailService.sendPasswordResetEmail(user.getEmail(), token);
+        emailService.sendPasswordResetEmail(user.getEmail(), token, Locale.forLanguageTag(user.getLanguage()));
         log.info("Password-reset email sent to user id={}, username='{}'", user.getId(), user.getUsername());
     }
 
     @Transactional
     public void resetPassword(String token, String newPassword) {
         PasswordResetToken prt = passwordResetTokenRepository.findByToken(token)
-                .orElseThrow(() -> new BadRequestException("Neplatný odkaz pro obnovení hesla"));
+                .orElseThrow(() -> BadRequestException.of("error.auth.invalid_reset_token"));
 
         if (prt.isUsed()) {
-            throw new BadRequestException("Tento odkaz pro obnovení hesla již byl použit");
+            throw BadRequestException.of("error.auth.reset_token_used");
         }
         if (prt.isExpired()) {
-            throw new BadRequestException("Odkaz pro obnovení hesla vypršel. Vyžádejte si nový.");
+            throw BadRequestException.of("error.auth.reset_token_expired");
         }
 
         User user = prt.getUser();
@@ -191,8 +198,94 @@ public class AuthService {
     @Transactional(readOnly = true)
     public UserResponse getCurrentUser(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Uživatel nenalezen"));
+                .orElseThrow(() -> ResourceNotFoundException.of("error.auth.user_not_found"));
         return userMapper.toResponse(user);
+    }
+
+    @Transactional
+    public void changePassword(String username, String currentPassword, String newPassword) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> ResourceNotFoundException.of("error.auth.user_not_found"));
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw BadRequestException.of("error.auth.invalid_current_password");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        try {
+            emailService.sendPasswordChangedEmail(user.getEmail(), Locale.forLanguageTag(user.getLanguage()));
+        } catch (Exception e) {
+            log.warn("Failed to send password-changed email to {}: {}", user.getEmail(), e.getMessage());
+        }
+        log.info("Password changed for user id={}, username='{}'", user.getId(), user.getUsername());
+    }
+
+    @Transactional
+    public UserResponse updateProfile(String username, UpdateProfileRequest request) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> ResourceNotFoundException.of("error.auth.user_not_found"));
+        if (request.firstName() != null) user.setFirstName(request.firstName());
+        if (request.lastName() != null) user.setLastName(request.lastName());
+        if (request.city() != null) user.setCity(request.city());
+        if (request.language() != null) user.setLanguage(request.language());
+        User saved = userRepository.save(user);
+        return userMapper.toResponse(saved);
+    }
+
+    @Transactional
+    public void deleteAccount(String username, String password) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> ResourceNotFoundException.of("error.auth.user_not_found"));
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw BadRequestException.of("error.auth.invalid_current_password");
+        }
+
+        Locale userLocale = Locale.forLanguageTag(user.getLanguage());
+
+        // 1. Driver-rides — notify passengers, then delete
+        List<Ride> driverRides = rideRepository.findAllByUser(user);
+        for (Ride ride : driverRides) {
+            List<User> passengersToNotify = List.copyOf(ride.getPassengers());
+            for (User p : passengersToNotify) {
+                tryEmail(() -> emailService.sendRideDeletedByDriverEmail(
+                        p.getEmail(), p.getUsername(),
+                        user.fullName(), user.getEmail(),
+                        ride.getRace().getName(), ride.getRace().getDate(),
+                        Locale.forLanguageTag(p.getLanguage())));
+            }
+            rideRepository.delete(ride);
+        }
+
+        // 2. Passenger memberships — notify driver, then remove
+        List<Ride> passengerRides = rideRepository.findAllByPassengersContaining(user);
+        for (Ride ride : passengerRides) {
+            ride.getPassengers().remove(user);
+            ride.setOccupiedSeats(ride.getOccupiedSeats() - 1);
+            rideRepository.save(ride);
+            tryEmail(() -> emailService.sendRideAcceptanceCancelledEmail(
+                    ride.getUser().getEmail(), ride.getUser().getUsername(),
+                    user.fullName(), user.getEmail(),
+                    ride.getRace().getName(), ride.getRace().getDate(),
+                    Locale.forLanguageTag(ride.getUser().getLanguage())));
+        }
+
+        // 3. Tokens
+        verificationTokenRepository.deleteAllForUser(user);
+        passwordResetTokenRepository.deleteAllForUser(user);
+
+        // 4. Send account-deleted email BEFORE deleting the user (need email + locale)
+        tryEmail(() -> emailService.sendAccountDeletedEmail(user.getEmail(), userLocale));
+
+        // 5. Delete user
+        userRepository.delete(user);
+        log.info("Account deleted: id={}, username='{}'", user.getId(), user.getUsername());
+    }
+
+    private void tryEmail(Runnable send) {
+        try {
+            send.run();
+        } catch (Exception e) {
+            log.warn("Mail send failed during account deletion: {}", e.getMessage());
+        }
     }
 
     private void issueVerificationToken(User user) {
@@ -204,6 +297,6 @@ public class AuthService {
                 .expiresAt(Instant.now().plus(VERIFICATION_TTL_HOURS, ChronoUnit.HOURS))
                 .build();
         verificationTokenRepository.save(vt);
-        emailService.sendVerificationEmail(user.getEmail(), token);
+        emailService.sendVerificationEmail(user.getEmail(), token, Locale.forLanguageTag(user.getLanguage()));
     }
 }

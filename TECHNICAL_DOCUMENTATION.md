@@ -207,9 +207,13 @@ attached as `Authorization: Bearer <token>`.
 
 **Races:**
 
-- `getRaces()` – GET `/races`
+- `getRaces()` – GET `/races`. The backend filters past races at the
+  DB level via `RaceRepository.findAllByDateGreaterThanEqualOrderByDateAsc(today)`
+  with `today = LocalDate.now(ZoneId.of("Europe/Prague"))`, so the
+  frontend dropdown only ever receives upcoming races sorted by date
+  ascending; today's races stay visible until midnight Europe/Prague
 - `getRaceById(id)` – GET `/races/{id}`
-- the backend additionally offers `GET /races/search?q=&from=&trackTypeId=&page=&size=&sort=` with paging and filters — a complex JPQL query defined via `@Query` on `RaceRepository`.
+- the backend additionally offers `GET /races/search?q=&from=&trackTypeId=&page=&size=&sort=` with paging and filters — a complex JPQL query defined via `@Query` on `RaceRepository`. This endpoint keeps its independent `from` filter and does **not** apply the upcoming-only filter automatically.
 
 **Rides:**
 
@@ -481,6 +485,19 @@ The app works on all devices:
 - **Accept an offer**: a logged-in user can accept an offer from another driver
 - **Cancel acceptance**: I can cancel my acceptance of a ride
 
+**Notifications and confirmation prompts:**
+
+Success and error feedback for create / update / accept / cancel /
+delete actions is rendered as a fixed in-app toast banner at the top of
+the page (auto-dismiss after 4 s, emerald for success with
+`role="status"`, red for error with `role="alert"`). Destructive
+actions (delete ride, cancel acceptance) use a custom confirmation
+modal (`aria-modal` + `aria-labelledby`, backdrop click closes only
+when no API call is in flight, both buttons disabled during the call
+to prevent double-submits). Native `window.alert` / `window.confirm`
+are not used; every message comes from the cs/en i18n dictionary
+(`races.alert.*` plus `common.confirm`).
+
 ### 8.2 User accounts
 
 **Test accounts (DEV / DEMO ONLY — must be removed before any production
@@ -558,6 +575,15 @@ redirected to login.
 - **React.StrictMode**: surfaces potential problems during development
 - **Proper state management**: minimises unnecessary re-renders
 - **useEffect dependencies**: correctly set dependency arrays
+- **Strict-Mode double-mount safety for one-shot effects**: pages that
+  fire a single side-effecting API call from `useEffect` (currently
+  `VerifyEmailPage`, which consumes a one-time verification token)
+  guard the call with a `useRef` flag. Without the guard, React 18
+  Strict Mode would mount the component twice in dev, fire the call
+  twice, and surface a spurious "token already used" error from the
+  second hit. Production builds don't double-mount, so the guard is a
+  no-op there — it's a defensive pattern for any one-shot
+  `useEffect`-driven API call.
 
 ## 10. Security
 
@@ -655,14 +681,49 @@ browser. Each endpoint carries `@Operation` with a summary and
 For real-world use, the app would still need:
 
 - Real-time chat between users
-- Push notifications (transactional email is already wired for
-  verification + password reset; in-app/push notifications and
-  marketing-style email digests are still missing)
+- In-app / push notifications and marketing-style email digests
+  (transactional email already covers verification, password
+  reset, password change, account deletion, ride accept / cancel
+  / delete by driver, and admin force-delete — see §13 below)
 - Map integration
 - Driver / passenger ratings
 - Payment gateway
 - Refresh tokens + JWT revocation
-- Mobile app
+- Native mobile app
+
+### 11.3 Localization (i18n)
+
+Backend error messages and email templates are localized for
+**cs** and **en** through Spring `MessageSource`.
+
+- **Configuration:** `I18nConfig.java` registers
+  `ReloadableResourceBundleMessageSource` with basenames
+  `messages` and `ValidationMessages` (UTF-8, no system fallback)
+  and pins `LocalValidatorFactoryBean` to the same source.
+- **Locale resolution chain:** a custom `UserLocaleResolver`
+  picks the locale by priority — (1) the logged-in user's
+  language preference (`UserDetailsImpl.getLanguage()`),
+  (2) the `Accept-Language` header (cs|en accepted),
+  (3) the default `cs`.
+- **Key namespaces:**
+  - `validation.<field>.<rule>` — Bean Validation messages on
+    request DTOs.
+  - `error.<area>.<reason>` — business errors thrown from the
+    service layer.
+  - `email.<event>[.<recipient>].{subject|body}` — email
+    subjects and bodies.
+- **How to add a new locale:** drop
+  `messages_<locale>.properties` and
+  `ValidationMessages_<locale>.properties` into
+  `backend/src/main/resources/`, mirror every key from the
+  existing `cs` / `en` files, and extend `UserLocaleResolver`
+  to whitelist the new tag.
+
+Localized exceptions (`BadRequestException`,
+`ResourceNotFoundException`, `DuplicateResourceException`)
+implement `LocalizedException` and use a static `.of(key, args)`
+factory; `GlobalExceptionHandler` resolves the keys with
+`LocaleContextHolder.getLocale()`.
 
 ## 12. Running the project
 

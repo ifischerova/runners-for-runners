@@ -1,4 +1,4 @@
-import { useEffect, useState, FormEvent } from 'react';
+import { useEffect, useRef, useState, FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, XCircle, Loader2, Mail } from 'lucide-react';
 import { apiService } from '../services/apiService';
@@ -13,6 +13,7 @@ export const VerifyEmailPage = () => {
 
   const [status, setStatus] = useState<Status>('verifying');
   const [errorMessage, setErrorMessage] = useState('');
+  const verifyAttempted = useRef(false);
 
   // Resend form state (used only when verification failed)
   const [resendEmail, setResendEmail] = useState('');
@@ -25,21 +26,17 @@ export const VerifyEmailPage = () => {
       setErrorMessage(t('auth.verify.body.missingToken'));
       return;
     }
-    let cancelled = false;
+    if (verifyAttempted.current) return;
+    verifyAttempted.current = true;
     (async () => {
       try {
         await apiService.verifyEmail(token);
-        if (!cancelled) setStatus('success');
+        setStatus('success');
       } catch (err) {
-        if (!cancelled) {
-          setStatus('failure');
-          setErrorMessage(err instanceof Error ? err.message : t('common.error.generic'));
-        }
+        setStatus('failure');
+        setErrorMessage(err instanceof Error ? err.message : t('common.error.generic'));
       }
     })();
-    return () => {
-      cancelled = true;
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 

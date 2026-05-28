@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidRideRequest {
 
-    String message() default "Neplatná kombinace polí pro daný typ jízdy";
+    String message() default "{validation.ride.combination.invalid}";
 
     Class<?>[] groups() default {};
 

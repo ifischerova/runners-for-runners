@@ -8,11 +8,24 @@ export interface User {
   lastName?: string;
   phone?: string;
   city?: string;
+  language?: string;
   driversLicenseValidUntil?: string;
   driversLicenseId?: string;
   isBlocked?: boolean;
   note?: string;
   roles: Role[];
+}
+
+// Matches the backend UserResponse DTO returned by /auth/me and PUT /auth/me.
+export interface UserResponse {
+  id: string;
+  username: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  city?: string;
+  language?: string;
+  roles: string[];
 }
 
 export enum Role {

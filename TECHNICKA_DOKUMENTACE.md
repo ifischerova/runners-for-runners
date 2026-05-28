@@ -198,9 +198,14 @@ Soubor `apiService.ts` je tenký REST klient nad `fetch`, který volá backend n
 
 **Závody:**
 
-- `getRaces()` – GET `/races`
+- `getRaces()` – GET `/races`. Backend filtruje proběhlé závody přímo
+  na úrovni DB přes `RaceRepository.findAllByDateGreaterThanEqualOrderByDateAsc(today)`,
+  kde `today = LocalDate.now(ZoneId.of("Europe/Prague"))`, takže
+  frontend dropdown dostane jen nadcházející závody seřazené
+  vzestupně podle data; dnešní závody zůstávají viditelné až do
+  půlnoci v Europe/Prague
 - `getRaceById(id)` – GET `/races/{id}`
-- backend navíc nabízí `GET /races/search?q=&from=&trackTypeId=&page=&size=&sort=` se stránkováním a filtry — komplexní JPQL dotaz definovaný přes `@Query` na `RaceRepository`.
+- backend navíc nabízí `GET /races/search?q=&from=&trackTypeId=&page=&size=&sort=` se stránkováním a filtry — komplexní JPQL dotaz definovaný přes `@Query` na `RaceRepository`. Tento endpoint má vlastní nezávislý filtr `from` a automaticky upcoming-only filtr **neaplikuje**.
 
 **Jízdy (rides):**
 
@@ -459,6 +464,19 @@ Aplikace funguje na všech zařízeních:
 - **Přijetí nabídky**: Přihlášený uživatel může přijmout nabídku od jiného řidiče
 - **Zrušení přijetí**: Můžu zrušit, že jedu s někým
 
+**Hlášky a potvrzovací dialogy:**
+
+Hlášky o úspěchu / chybě pro vytvoření / úpravu / přijetí / zrušení /
+smazání jízdy se renderují jako fixní in-app toast banner v horní
+části stránky (auto-dismiss po 4 s, emerald barva pro úspěch
+s `role="status"`, červená pro chybu s `role="alert"`). Destruktivní
+akce (smazání jízdy, zrušení přijetí) používají vlastní potvrzovací
+modální komponentu (`aria-modal` + `aria-labelledby`, backdrop click
+zavírá modal pouze pokud neprobíhá API volání, obě tlačítka jsou
+disabled během volání, aby nešlo akci spustit dvakrát). Nativní
+`window.alert` / `window.confirm` se nepoužívají; všechny texty
+pocházejí z cs/en i18n slovníku (`races.alert.*` plus `common.confirm`).
+
 ### 8.2 Uživatelské účty
 
 **Testovací účty (POUZE PRO VÝVOJ / DEMO — před produkčním nasazením
@@ -534,6 +552,15 @@ Když se nepřihlášený uživatel pokusí dostat na chráněnou stránku, pře
 - **React.StrictMode**: Odhaluje potenciální problémy během vývoje
 - **Správný state management**: Minimalizace zbytečných re-renderů
 - **useEffect dependencies**: Správně nastavené závislosti
+- **Ochrana před double-mountem ve Strict Mode pro one-shot effecty**:
+  Stránky, které z `useEffect` spouští jedno side-efektové volání na
+  backend (aktuálně `VerifyEmailPage`, která spotřebovává jednorázový
+  verifikační token), si toto volání obalují strážním `useRef` flagem.
+  Bez něj by React 18 Strict Mode v dev režimu komponentu mountnul
+  dvakrát, volání proběhlo dvakrát a uživateli by se po druhém pokusu
+  objevila chyba „token už byl použit". Produkční build dvojnásobný
+  mount nedělá, takže stráž je v něm no-op — je to obecný defensive
+  pattern pro jakýkoli one-shot API call řízený z `useEffect`.
 
 ## 10. Bezpečnost
 
@@ -619,14 +646,49 @@ Konfigurace `OpenApiConfig` přidává JWT bearer security scheme — v UI lze p
 Pro reálný provoz by byla ještě potřeba:
 
 - Real-time chat mezi uživateli
-- Push notifikace (transakční e-maily pro ověření a reset hesla už
-  fungují; in-app / push notifikace a marketingové e-mailové digesty
-  zatím chybí)
+- In-app / push notifikace a marketingové e-mailové digesty
+  (transakční e-maily už pokrývají ověření, reset hesla, změnu
+  hesla, smazání účtu, přijetí / zrušení přijetí / smazání jízdy
+  řidičem a administrátorské force-delete — viz §13 níže)
 - Mapová integrace
 - Hodnocení řidičů / spolujezdců
 - Platební brána
 - Refresh tokeny + odvolávání JWT
-- Mobilní aplikace
+- Nativní mobilní aplikace
+
+### 11.3 Lokalizace (i18n)
+
+Chybové hlášky backendu a e-mailové šablony jsou lokalizované
+pro **cs** a **en** přes Spring `MessageSource`.
+
+- **Konfigurace:** `I18nConfig.java` registruje
+  `ReloadableResourceBundleMessageSource` s basenames
+  `messages` a `ValidationMessages` (UTF-8, žádný systémový
+  fallback) a pinuje `LocalValidatorFactoryBean` na stejný
+  source.
+- **Resolver locale:** vlastní `UserLocaleResolver` vybírá
+  Locale podle priority — (1) jazyková preference přihlášeného
+  uživatele (`UserDetailsImpl.getLanguage()`), (2) hlavička
+  `Accept-Language` (přijímá cs|en), (3) výchozí `cs`.
+- **Klíčové namespace:**
+  - `validation.<field>.<rule>` — Bean Validation zprávy na
+    request DTO.
+  - `error.<area>.<reason>` — business chybové hlášky vyhozené
+    ze service vrstvy.
+  - `email.<event>[.<recipient>].{subject|body}` — předměty
+    a těla e-mailů.
+- **Přidání nového jazyka:** přidej
+  `messages_<locale>.properties` a
+  `ValidationMessages_<locale>.properties` do
+  `backend/src/main/resources/`, doplň všechny klíče
+  z existujících cs / en souborů a rozšiř `UserLocaleResolver`
+  o whitelist nového tagu.
+
+Lokalizované výjimky (`BadRequestException`,
+`ResourceNotFoundException`, `DuplicateResourceException`)
+implementují `LocalizedException` a používají statickou
+továrnu `.of(key, args)`; `GlobalExceptionHandler` resolvuje
+klíče přes `LocaleContextHolder.getLocale()`.
 
 ## 12. Spuštění projektu
 

@@ -16,6 +16,7 @@ public class UserDetailsImpl implements UserDetails {
     private final String username;
     private final String password;
     private final boolean emailVerified;
+    private final String language;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public UserDetailsImpl(User user) {
@@ -23,6 +24,7 @@ public class UserDetailsImpl implements UserDetails {
         this.username = user.getUsername();
         this.password = user.getPassword();
         this.emailVerified = user.isEmailVerified();
+        this.language = user.getLanguage();
         this.authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.name()))
                 .toList();

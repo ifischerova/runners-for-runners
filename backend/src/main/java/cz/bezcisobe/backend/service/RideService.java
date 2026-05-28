@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -40,6 +41,7 @@ public class RideService {
     private final RaceRepository raceRepository;
     private final UserRepository userRepository;
     private final RideMapper rideMapper;
+    private final EmailService emailService;
 
     /**
      * Returns all rides for one race, OFFER and REQUEST mixed.
@@ -60,12 +62,12 @@ public class RideService {
         Race race = raceRepository.findById(request.raceId())
                 .orElseThrow(() -> {
                     log.warn("Race {} not found while creating ride", request.raceId());
-                    return new ResourceNotFoundException("Závod nenalezen");
+                    return ResourceNotFoundException.of("error.ride.race_not_found");
                 });
-        rejectIfRaceAlreadyHappened(race, "Nelze vytvořit jízdu pro již proběhlý závod");
+        rejectIfRaceAlreadyHappened(race, "error.ride.cannot_create_past");
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Uživatel nenalezen"));
+                .orElseThrow(() -> ResourceNotFoundException.of("error.auth.user_not_found"));
 
         RideType type = parseType(request.type());
 
@@ -95,18 +97,16 @@ public class RideService {
     @Transactional
     public RideResponse updateRide(UUID rideId, UpdateRideRequest request, UUID userId) {
         Ride ride = rideRepository.findById(rideId)
-                .orElseThrow(() -> new ResourceNotFoundException("Jízda nenalezena"));
+                .orElseThrow(() -> ResourceNotFoundException.of("error.ride.not_found"));
 
         if (!ride.getUser().getId().equals(userId)) {
             log.warn("User {} attempted to update ride {} owned by {}",
                     userId, rideId, ride.getUser().getId());
-            throw new BadRequestException("Nemáte oprávnění upravit tuto jízdu");
+            throw BadRequestException.of("error.ride.no_permission_to_update");
         }
 
         if (request.availableSeats() < ride.getOccupiedSeats()) {
-            throw new BadRequestException(
-                    "Počet míst nemůže být nižší než počet již přihlášených spolujezdců ("
-                            + ride.getOccupiedSeats() + ")");
+            throw BadRequestException.of("error.ride.seats_below_passengers", ride.getOccupiedSeats());
         }
 
         ride.setType(parseType(request.type()));
@@ -123,34 +123,56 @@ public class RideService {
 
     /**
      * Deletes a ride. Only the owner can delete their own ride; admins go
-     * through {@link #deleteRideAsAdmin}.
+     * through {@link #deleteRideAsAdmin}. Each current passenger receives a
+     * best-effort email notification.
      */
     @Transactional
     public void deleteRide(UUID rideId, UUID userId) {
         Ride ride = rideRepository.findById(rideId)
-                .orElseThrow(() -> new ResourceNotFoundException("Jízda nenalezena"));
+                .orElseThrow(() -> ResourceNotFoundException.of("error.ride.not_found"));
 
         if (!ride.getUser().getId().equals(userId)) {
             log.warn("User {} attempted to delete ride {} owned by {}",
                     userId, rideId, ride.getUser().getId());
-            throw new BadRequestException("Nemáte oprávnění smazat tuto jízdu");
+            throw BadRequestException.of("error.ride.no_permission_to_delete");
         }
+
+        // Snapshot recipients before deletion so we still have a usable list
+        // after the JPA cascade removes the passenger join rows.
+        User driver = ride.getUser();
+        Race race = ride.getRace();
+        List<User> passengersToNotify = List.copyOf(ride.getPassengers());
 
         rideRepository.delete(ride);
         log.info("Ride {} deleted by owner {}", rideId, userId);
+
+        for (User p : passengersToNotify) {
+            notifyPassengerOfDriverDeletion(p, driver, race);
+        }
     }
 
     /**
      * Admin-only force delete: removes a ride regardless of ownership.
      * Authorization is enforced at the controller via {@code @PreAuthorize}.
+     * The driver and every current passenger receive a best-effort email.
      */
     @Transactional
     public void deleteRideAsAdmin(UUID rideId, UUID adminId) {
         Ride ride = rideRepository.findById(rideId)
-                .orElseThrow(() -> new ResourceNotFoundException("Jízda nenalezena"));
+                .orElseThrow(() -> ResourceNotFoundException.of("error.ride.not_found"));
+
+        User driver = ride.getUser();
+        Race race = ride.getRace();
+        List<User> passengersToNotify = List.copyOf(ride.getPassengers());
+
         rideRepository.delete(ride);
         log.warn("Admin {} force-deleted ride {} (was owned by {})",
-                adminId, rideId, ride.getUser().getId());
+                adminId, rideId, driver.getId());
+
+        notifyDriverOfAdminDeletion(driver, race);
+        for (User p : passengersToNotify) {
+            notifyPassengerOfAdminDeletion(p, race);
+        }
     }
 
     /**
@@ -160,20 +182,20 @@ public class RideService {
     @Transactional
     public RideResponse acceptRide(UUID rideId, UUID passengerId) {
         Ride ride = rideRepository.findById(rideId)
-                .orElseThrow(() -> new ResourceNotFoundException("Jízda nenalezena"));
-        rejectIfRaceAlreadyHappened(ride.getRace(), "Nelze přijmout jízdu na již proběhlý závod");
+                .orElseThrow(() -> ResourceNotFoundException.of("error.ride.not_found"));
+        rejectIfRaceAlreadyHappened(ride.getRace(), "error.ride.cannot_accept_past");
 
         User passenger = userRepository.findById(passengerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Uživatel nenalezen"));
+                .orElseThrow(() -> ResourceNotFoundException.of("error.auth.user_not_found"));
 
         if (ride.getOccupiedSeats() >= ride.getAvailableSeats()) {
-            throw new BadRequestException("Nejsou k dispozici žádná volná místa");
+            throw BadRequestException.of("error.ride.no_seats");
         }
 
         boolean alreadyPassenger = ride.getPassengers().stream()
                 .anyMatch(p -> p.getId().equals(passengerId));
         if (alreadyPassenger) {
-            throw new BadRequestException("Již jste přihlášeni k této jízdě");
+            throw BadRequestException.of("error.ride.already_joined");
         }
 
         ride.getPassengers().add(passenger);
@@ -181,6 +203,8 @@ public class RideService {
         Ride saved = rideRepository.save(ride);
         log.info("User {} accepted ride {} (now {}/{} seats)",
                 passengerId, rideId, saved.getOccupiedSeats(), saved.getAvailableSeats());
+
+        notifyDriverOfAcceptance(saved.getUser(), passenger, saved.getRace());
         return rideMapper.toResponse(saved);
     }
 
@@ -190,16 +214,27 @@ public class RideService {
     @Transactional
     public RideResponse cancelRideAcceptance(UUID rideId, UUID passengerId) {
         Ride ride = rideRepository.findById(rideId)
-                .orElseThrow(() -> new ResourceNotFoundException("Jízda nenalezena"));
+                .orElseThrow(() -> ResourceNotFoundException.of("error.ride.not_found"));
+
+        // Find the passenger user object before removing it so we can include
+        // their details in the email to the driver.
+        User passenger = ride.getPassengers().stream()
+                .filter(p -> p.getId().equals(passengerId))
+                .findFirst()
+                .orElse(null);
 
         boolean removed = ride.getPassengers().removeIf(p -> p.getId().equals(passengerId));
         if (!removed) {
-            throw new BadRequestException("Nejste přihlášeni k této jízdě");
+            throw BadRequestException.of("error.ride.not_joined");
         }
 
         ride.setOccupiedSeats(ride.getOccupiedSeats() - 1);
         Ride saved = rideRepository.save(ride);
         log.info("User {} cancelled their seat on ride {}", passengerId, rideId);
+
+        if (passenger != null) {
+            notifyDriverOfCancellation(saved.getUser(), passenger, saved.getRace());
+        }
         return rideMapper.toResponse(saved);
     }
 
@@ -207,7 +242,7 @@ public class RideService {
         try {
             return RideType.valueOf(value);
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Neplatný typ jízdy");
+            throw BadRequestException.of("error.ride.invalid_type");
         }
     }
 
@@ -217,10 +252,79 @@ public class RideService {
      * editing or deleting existing rides remains allowed so users can clean
      * up their history.
      */
-    private void rejectIfRaceAlreadyHappened(Race race, String message) {
+    private void rejectIfRaceAlreadyHappened(Race race, String messageKey) {
         if (race.getDate().isBefore(LocalDate.now(APP_ZONE))) {
             log.warn("Rejected action on past race {} (date={})", race.getId(), race.getDate());
-            throw new BadRequestException(message);
+            throw BadRequestException.of(messageKey);
+        }
+    }
+
+    // ---- Best-effort email notifications -----------------------------------
+    //
+    // Each helper wraps the EmailService call in a try/catch that logs WARN
+    // and swallows the exception. Mail delivery problems must NOT roll back
+    // the ride-state mutation that already succeeded.
+
+    private void notifyDriverOfAcceptance(User driver, User passenger, Race race) {
+        try {
+            emailService.sendRideAcceptedEmail(
+                    driver.getEmail(), driver.getUsername(),
+                    passenger.fullName(), passenger.getEmail(),
+                    race.getName(), race.getDate(),
+                    Locale.forLanguageTag(driver.getLanguage()));
+        } catch (Exception e) {
+            log.warn("Failed to send ride-accepted email to driver {}: {}",
+                    driver.getEmail(), e.getMessage());
+        }
+    }
+
+    private void notifyDriverOfCancellation(User driver, User passenger, Race race) {
+        try {
+            emailService.sendRideAcceptanceCancelledEmail(
+                    driver.getEmail(), driver.getUsername(),
+                    passenger.fullName(), passenger.getEmail(),
+                    race.getName(), race.getDate(),
+                    Locale.forLanguageTag(driver.getLanguage()));
+        } catch (Exception e) {
+            log.warn("Failed to send ride-acceptance-cancelled email to driver {}: {}",
+                    driver.getEmail(), e.getMessage());
+        }
+    }
+
+    private void notifyPassengerOfDriverDeletion(User passenger, User driver, Race race) {
+        try {
+            emailService.sendRideDeletedByDriverEmail(
+                    passenger.getEmail(), passenger.getUsername(),
+                    driver.fullName(), driver.getEmail(),
+                    race.getName(), race.getDate(),
+                    Locale.forLanguageTag(passenger.getLanguage()));
+        } catch (Exception e) {
+            log.warn("Failed to send ride-deleted email to passenger {}: {}",
+                    passenger.getEmail(), e.getMessage());
+        }
+    }
+
+    private void notifyDriverOfAdminDeletion(User driver, Race race) {
+        try {
+            emailService.sendRideDeletedByAdminToDriverEmail(
+                    driver.getEmail(), driver.getUsername(),
+                    race.getName(), race.getDate(),
+                    Locale.forLanguageTag(driver.getLanguage()));
+        } catch (Exception e) {
+            log.warn("Failed to send admin-deleted email to driver {}: {}",
+                    driver.getEmail(), e.getMessage());
+        }
+    }
+
+    private void notifyPassengerOfAdminDeletion(User passenger, Race race) {
+        try {
+            emailService.sendRideDeletedByAdminToPassengerEmail(
+                    passenger.getEmail(), passenger.getUsername(),
+                    race.getName(), race.getDate(),
+                    Locale.forLanguageTag(passenger.getLanguage()));
+        } catch (Exception e) {
+            log.warn("Failed to send admin-deleted email to passenger {}: {}",
+                    passenger.getEmail(), e.getMessage());
         }
     }
 }

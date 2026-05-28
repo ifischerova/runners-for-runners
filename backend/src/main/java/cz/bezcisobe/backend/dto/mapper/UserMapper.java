@@ -23,6 +23,7 @@ public class UserMapper {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getCity(),
+                user.getLanguage(),
                 roles
         );
     }
